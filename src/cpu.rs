@@ -7,7 +7,7 @@ pub struct Cpu {
     pub i_reg: u16, // Index register
     pub pc: u16, // Program counter
 
-    pub stack: [u8; 16],
+    pub stack: [u16; 16],
     pub sp: u8, // Stack pointer
 
     pub delay_timer: u8,

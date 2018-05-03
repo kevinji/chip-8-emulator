@@ -140,11 +140,18 @@ impl Opcode {
         match *self {
             Opcode::SYS => (),
             Opcode::CLS => (), // Clear the display.
-            Opcode::RET => (), // Return from a subroutine.
+            Opcode::RET => {
+                cpu.sp -= 1;
+                cpu.pc = cpu.stack[cpu.sp as usize];
+            },
             Opcode::JP { addr } => {
                 cpu.pc = addr;
             },
-            Opcode::CALL { addr: _ } => (), // 2nnn - Call subroutine at nnn.
+            Opcode::CALL { addr } => {
+                cpu.stack[cpu.sp as usize] = cpu.pc;
+                cpu.sp += 1;
+                cpu.pc = addr;
+            },
             Opcode::SE { vx, byte } => {
                 if cpu.regs[vx] == byte {
                     cpu.push_pc();
@@ -231,8 +238,16 @@ impl Opcode {
             Opcode::ADD_I { vx } => {
                 cpu.i_reg = cpu.i_reg.wrapping_add(vx as u16);
             },
-            Opcode::LD_F { vx: _ } => (), // Fx29 - Set I = location of sprite for digit Vx.
-            Opcode::LD_B { vx: _ } => (), // Fx33 - Store BCD representation of Vx in memory locations I, I+1, and I+2.
+            Opcode::LD_F { vx } => {
+                cpu.i_reg = vx as u16 * 5;
+            },
+            Opcode::LD_B { vx } => {
+                let mut vx_val = cpu.regs[vx];
+                for i in 0..3 {
+                    cpu.memory[cpu.i_reg as usize + (2 - i)] = vx_val % 10;
+                    vx_val /= 10;
+                }
+            },
             Opcode::LD_I_R { vx } => {
                 for vi in 0..vx+1 {
                     cpu.memory[cpu.i_reg as usize + vi] = cpu.regs[vi];
