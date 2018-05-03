@@ -1,6 +1,7 @@
 extern crate rand;
 
 mod cpu;
+mod graphics;
 mod opcode;
 
 use cpu::Cpu;
