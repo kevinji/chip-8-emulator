@@ -8,6 +8,7 @@ pub struct Graphics {
 impl Graphics {
     pub fn new() -> Result<Self, Error> {
         let window = WindowSettings::new("CHIP-8 Emulator", (640, 320))
+            .resizable(false)
             .exit_on_esc(true)
             .build()
             .map_err(failure::err_msg)?;
