@@ -42,7 +42,7 @@ static FONTSET: [u8; 80] = [
 ];
 
 impl Cpu {
-    pub fn new() -> Result<Self, Error> {
+    pub fn new(rom_buf: &Vec<u8>) -> Result<Self, Error> {
         let mut cpu = Cpu {
             memory: [0; 4096],
 
@@ -63,10 +63,13 @@ impl Cpu {
         // Store font data before 0x200.
         cpu.memory[..FONTSET.len()].copy_from_slice(&FONTSET);
 
+        // Load the chosen ROM into memory.
+        cpu.load_rom(rom_buf);
+
         Ok(cpu)
     }
 
-    pub fn load_program(&mut self, program: &[u8]) {
+    pub fn load_rom(&mut self, program: &[u8]) {
         assert!(self.memory.len() >= 0x200 + program.len(), "Program does not fit in memory.");
 
         // Fill memory from 0x200.
