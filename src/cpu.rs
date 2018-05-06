@@ -1,3 +1,8 @@
+use failure::Error;
+use piston_window::*;
+
+use keypad::Keypad;
+use graphics::Graphics;
 use opcode::Opcode;
 
 pub struct Cpu {
@@ -12,6 +17,9 @@ pub struct Cpu {
 
     pub delay_timer: u8,
     pub sound_timer: u8,
+
+    pub keypad: Keypad,
+    pub graphics: Graphics,
 }
 
 static FONTSET: [u8; 80] = [
@@ -34,7 +42,7 @@ static FONTSET: [u8; 80] = [
 ];
 
 impl Cpu {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, Error> {
         let mut cpu = Cpu {
             memory: [0; 4096],
 
@@ -47,25 +55,42 @@ impl Cpu {
 
             delay_timer: 0,
             sound_timer: 0,
+
+            keypad: Keypad::new(),
+            graphics: Graphics::new()?,
         };
 
         // Store font data before 0x200.
         cpu.memory[..FONTSET.len()].copy_from_slice(&FONTSET);
 
-        cpu
+        Ok(cpu)
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
         assert!(self.memory.len() >= 0x200 + program.len(), "Program does not fit in memory.");
 
         // Fill memory from 0x200.
-        self.memory[0x200..0x200+program.len()].copy_from_slice(program)
+        self.memory[0x200..0x200+program.len()].copy_from_slice(program);
     }
 
     pub fn cycle(&mut self) {
-        let opcode = self.fetch_opcode();
-        self.decode_and_execute_opcode(opcode);
-        self.update_timers();
+        while let Some(e) = self.graphics.window.next() {
+            match e {
+                Event::Input(input) => {
+                    if let Input::Button(button_args) = input {
+                        if let Button::Keyboard(key) = button_args.button {
+                            self.keypad.update_key_state(key, button_args.state);
+                        }
+                    }
+                },
+                Event::Loop(_loop) => {
+                    let opcode = self.fetch_opcode();
+                    self.decode_and_execute_opcode(opcode);
+                    self.update_timers();
+                },
+                Event::Custom(_, _) => (),
+            }
+        }
     }
 
     fn fetch_opcode(&self) -> u16 {

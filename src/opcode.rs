@@ -1,5 +1,7 @@
-use cpu::Cpu;
+use piston_window::*;
 use rand::{thread_rng, Rng};
+
+use cpu::Cpu;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
@@ -223,8 +225,16 @@ impl Opcode {
                 cpu.regs[vx] = thread_rng().gen::<u8>() & byte;
             },
             Opcode::DRW { vx: _, vy: _, n: _ } => (), // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
-            Opcode::SKP { vx: _ } => (), // Ex9E - Skip next instruction if key with the value of Vx is pressed.
-            Opcode::SKNP { vx: _ } => (), // ExA1 - Skip next instruction if key with the value of Vx is not pressed.
+            Opcode::SKP { vx } => {
+                if cpu.keypad.key_states[cpu.regs[vx] as usize] == ButtonState::Press {
+                    cpu.push_pc();
+                }
+            },
+            Opcode::SKNP { vx } => {
+                if cpu.keypad.key_states[cpu.regs[vx] as usize] == ButtonState::Release {
+                    cpu.push_pc();
+                }
+            },
             Opcode::LD_R_DT { vx } => {
                 cpu.regs[vx] = cpu.delay_timer;
             },
