@@ -3,9 +3,9 @@ extern crate piston_window;
 extern crate rand;
 
 mod cpu;
-mod graphics;
 mod keypad;
 mod opcode;
+mod view;
 
 use std::fs::File;
 use std::io::Read;

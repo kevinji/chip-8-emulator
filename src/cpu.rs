@@ -2,7 +2,7 @@ use failure::Error;
 use piston_window::*;
 
 use keypad::Keypad;
-use graphics::Graphics;
+use view::View;
 use opcode::Opcode;
 
 pub struct Cpu {
@@ -19,7 +19,7 @@ pub struct Cpu {
     pub sound_timer: u8,
 
     pub keypad: Keypad,
-    pub graphics: Graphics,
+    pub view: View,
 }
 
 static FONTSET: [u8; 80] = [
@@ -57,7 +57,7 @@ impl Cpu {
             sound_timer: 0,
 
             keypad: Keypad::new(),
-            graphics: Graphics::new()?,
+            view: View::new()?,
         };
 
         // Store font data before 0x200.
@@ -77,7 +77,8 @@ impl Cpu {
     }
 
     pub fn cycle(&mut self) {
-        while let Some(e) = self.graphics.window.next() {
+        while let Some(e) = self.view.window.next() {
+            // println!("{:?}", e);
             match e {
                 Event::Input(input) => {
                     if let Input::Button(button_args) = input {
@@ -86,10 +87,20 @@ impl Cpu {
                         }
                     }
                 },
-                Event::Loop(_loop) => {
-                    let opcode = self.fetch_opcode();
-                    self.decode_and_execute_opcode(opcode);
-                    self.update_timers();
+                Event::Loop(loop_e) => match loop_e {
+                    Loop::Update(_update_args) => {
+                        let opcode = self.fetch_opcode();
+                        self.decode_and_execute_opcode(opcode);
+                        self.update_timers();
+                    },
+                    Loop::Render(_render_args) => {
+                        if self.view.should_draw {
+                            self.view.window.draw_2d(&e, |c, g| {
+                            });
+                            self.view.should_draw = false;
+                        }
+                    },
+                    _ => (),
                 },
                 Event::Custom(_, _) => (),
             }
