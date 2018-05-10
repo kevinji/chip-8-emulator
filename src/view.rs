@@ -47,9 +47,9 @@ impl View {
     {
         for (row_i, row) in sprite.iter().enumerate() {
             let mut row_copy = row;
-            for col_i in 0..8 {
+            for col_i in 7..=0 {
                 let color = (row_copy & 1) as f32;
-                self.draw_pixel(c, g, y + row_i as u32, x + 7 - col_i as u32,
+                self.draw_pixel(c, g, y + row_i as u32, x + col_i as u32,
                                 color);
             }
         }

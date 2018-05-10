@@ -253,18 +253,18 @@ impl Opcode {
             },
             Opcode::LD_B { vx } => {
                 let mut vx_val = cpu.regs[vx];
-                for i in 0..3 {
-                    cpu.memory[cpu.i_reg as usize + (2 - i)] = vx_val % 10;
+                for i in 2..=0 {
+                    cpu.memory[cpu.i_reg as usize + i] = vx_val % 10;
                     vx_val /= 10;
                 }
             },
             Opcode::LD_I_R { vx } => {
-                for vi in 0..vx+1 {
+                for vi in 0..=vx {
                     cpu.memory[cpu.i_reg as usize + vi] = cpu.regs[vi];
                 }
             },
             Opcode::LD_R_I { vx } => {
-                for vi in 0..vx+1 {
+                for vi in 0..=vx {
                     cpu.regs[vi] = cpu.memory[cpu.i_reg as usize + vi];
                 }
             },

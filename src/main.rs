@@ -16,17 +16,7 @@ use cpu::Cpu;
 
 const DEFAULT_ROM: &str = "PONG";
 
-fn main() {
-    ::std::process::exit(match app() {
-        Ok(()) => 0,
-        Err(err) => {
-            eprintln!("Error: {:?}", err);
-            1
-        }
-    })
-}
-
-fn app() -> Result<(), Error> {
+fn main() -> Result<(), Error> {
     let mut rom_buf = Vec::new();
     read_rom(DEFAULT_ROM, &mut rom_buf)?;
 
