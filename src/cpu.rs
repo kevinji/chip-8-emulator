@@ -2,7 +2,7 @@ use failure::Error;
 use piston_window::*;
 
 use keypad::Keypad;
-use view::View;
+use view::{GameState, View};
 use opcode::Opcode;
 
 pub struct Cpu {
@@ -38,7 +38,7 @@ static FONTSET: [u8; 80] = [
     0xF0, 0x80, 0x80, 0x80, 0xF0, // C
     0xE0, 0x90, 0x90, 0x90, 0xE0, // D
     0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+    0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
 impl Cpu {
@@ -94,10 +94,10 @@ impl Cpu {
                         self.update_timers();
                     },
                     Loop::Render(_render_args) => {
-                        if self.view.should_draw {
+                        if self.view.state != GameState::Idle {
                             self.view.window.draw_2d(&e, |c, g| {
                             });
-                            self.view.should_draw = false;
+                            self.view.state = GameState::Idle;
                         }
                     },
                     _ => (),

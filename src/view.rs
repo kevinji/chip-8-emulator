@@ -5,9 +5,16 @@ const COLS: u32 = 64;
 const ROWS: u32 = 32;
 const SCALE: u32 = 10;
 
+#[derive(PartialEq)]
+pub enum GameState {
+    Idle,
+    ClearScreen,
+    DrawSprite { sprite: Vec<u8>, y: u32, x: u32 },
+}
+
 pub struct View {
     pub window: PistonWindow,
-    pub should_draw: bool,
+    pub state: GameState,
 }
 
 impl View {
@@ -23,7 +30,7 @@ impl View {
 
         Ok(View {
             window: window,
-            should_draw: false,
+            state: GameState::Idle,
         })
     }
 
@@ -34,11 +41,26 @@ impl View {
               g);
     }
 
-    pub fn draw_pixel<G>(&self, c: context::Context, g: &mut G)
+    pub fn draw_sprite<G>(&self, c: context::Context, g: &mut G, y: u32, x: u32,
+                          sprite: &Vec<u8>)
         where G: Graphics
     {
-        rectangle([1., 1., 1., 1.], // white
-                  [0., 0., SCALE.into(), SCALE.into()],
+        for (row_i, row) in sprite.iter().enumerate() {
+            let mut row_copy = row;
+            for col_i in 0..8 {
+                let color = (row_copy & 1) as f32;
+                self.draw_pixel(c, g, y + row_i as u32, x + 7 - col_i as u32,
+                                color);
+            }
+        }
+    }
+
+    fn draw_pixel<G>(&self, c: context::Context, g: &mut G, y: u32, x: u32,
+                     color: f32)
+        where G: Graphics
+    {
+        rectangle([color, color, color, 1.],
+                  [y.into(), x.into(), SCALE.into(), SCALE.into()],
                   c.transform, g);
     }
 }
