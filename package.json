@@ -1,0 +1,35 @@
+{
+  "name": "chip-8-emulator",
+  "version": "1.0.0",
+  "description": "A CHIP-8 emulator written in Rust and WebAssembly.",
+  "scripts": {
+    "build": "webpack --mode production --require @babel/register",
+    "lint": "eslint .",
+    "dev": "webpack --mode development --require @babel/register",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mc10/chip-8-emulator.git"
+  },
+  "author": "Kevin Ji",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mc10/chip-8-emulator/issues"
+  },
+  "homepage": "https://github.com/mc10/chip-8-emulator#readme",
+  "devDependencies": {
+    "@babel/core": "7.0.0-rc.3",
+    "@babel/preset-env": "7.0.0-rc.3",
+    "@babel/preset-flow": "7.0.0-rc.3",
+    "@babel/register": "7.0.0-rc.3",
+    "babel-loader": "8.0.0-beta.6",
+    "eslint": "5.4.0",
+    "eslint-config-airbnb-base": "13.1.0",
+    "eslint-loader": "2.1.0",
+    "eslint-plugin-import": "2.14.0",
+    "flow-bin": "0.79.1",
+    "webpack": "4.17.1",
+    "webpack-command": "0.4.1"
+  }
+}
