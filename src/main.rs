@@ -1,6 +1,8 @@
 extern crate failure;
-extern crate piston_window;
+extern crate js_sys;
 extern crate rand;
+extern crate wasm_bindgen;
+extern crate web_sys;
 
 mod cpu;
 mod keypad;

@@ -1,5 +1,4 @@
-use piston_window::*;
-use rand::{thread_rng, Rng};
+use rand::random;
 
 use cpu::Cpu;
 
@@ -222,16 +221,16 @@ impl Opcode {
                 cpu.pc = (cpu.regs[0x0] as u16) + addr;
             },
             Opcode::RND { vx, byte } => {
-                cpu.regs[vx] = thread_rng().gen::<u8>() & byte;
+                cpu.regs[vx] = random::<u8>() & byte;
             },
             Opcode::DRW { vx: _, vy: _, n: _ } => (), // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
             Opcode::SKP { vx } => {
-                if cpu.keypad.key_states[cpu.regs[vx] as usize] == ButtonState::Press {
+                if cpu.keypad.key_states[cpu.regs[vx] as usize] == "Press" {
                     cpu.push_pc();
                 }
             },
             Opcode::SKNP { vx } => {
-                if cpu.keypad.key_states[cpu.regs[vx] as usize] == ButtonState::Release {
+                if cpu.keypad.key_states[cpu.regs[vx] as usize] == "Release" {
                     cpu.push_pc();
                 }
             },

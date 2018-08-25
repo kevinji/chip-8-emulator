@@ -1,5 +1,4 @@
 use failure::Error;
-use piston_window::*;
 
 use keypad::Keypad;
 use view::{GameState, View};
@@ -77,6 +76,7 @@ impl Cpu {
     }
 
     pub fn cycle(&mut self) {
+        /*
         while let Some(e) = self.view.window.next() {
             // println!("{:?}", e);
             match e {
@@ -87,24 +87,10 @@ impl Cpu {
                         }
                     }
                 },
-                Event::Loop(loop_e) => match loop_e {
-                    Loop::Update(_update_args) => {
-                        let opcode = self.fetch_opcode();
-                        self.decode_and_execute_opcode(opcode);
-                        self.update_timers();
-                    },
-                    Loop::Render(_render_args) => {
-                        if self.view.state != GameState::Idle {
-                            self.view.window.draw_2d(&e, |c, g| {
-                            });
-                            self.view.state = GameState::Idle;
-                        }
-                    },
-                    _ => (),
-                },
-                Event::Custom(_, _) => (),
-            }
-        }
+        */
+        let opcode = self.fetch_opcode();
+        self.decode_and_execute_opcode(opcode);
+        self.update_timers();
     }
 
     fn fetch_opcode(&self) -> u16 {
@@ -126,7 +112,7 @@ impl Cpu {
         if self.delay_timer > 0 {
             self.delay_timer -= 1;
         }
-        
+
         if self.sound_timer > 0 {
             self.sound_timer -= 1;
         }

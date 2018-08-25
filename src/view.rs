@@ -1,5 +1,4 @@
 use failure::{self, Error};
-use piston_window::*;
 
 const COLS: u32 = 64;
 const ROWS: u32 = 32;
@@ -13,12 +12,12 @@ pub enum GameState {
 }
 
 pub struct View {
-    pub window: PistonWindow,
     pub state: GameState,
 }
 
 impl View {
     pub fn new() -> Result<Self, Error> {
+        /*
         let window = WindowSettings::new("CHIP-8 Emulator",
                                          (COLS * SCALE, ROWS * SCALE))
             .resizable(false)
@@ -27,40 +26,10 @@ impl View {
             .map_err(failure::err_msg)?
             .max_fps(60)
             .ups(60);
+        */
 
         Ok(View {
-            window: window,
             state: GameState::Idle,
         })
-    }
-
-    pub fn clear<G>(&self, g: &mut G)
-        where G: Graphics
-    {
-        clear([0., 0., 0., 1.], // black
-              g);
-    }
-
-    pub fn draw_sprite<G>(&self, c: context::Context, g: &mut G, y: u32, x: u32,
-                          sprite: &Vec<u8>)
-        where G: Graphics
-    {
-        for (row_i, row) in sprite.iter().enumerate() {
-            let mut row_copy = row;
-            for col_i in 7..=0 {
-                let color = (row_copy & 1) as f32;
-                self.draw_pixel(c, g, y + row_i as u32, x + col_i as u32,
-                                color);
-            }
-        }
-    }
-
-    fn draw_pixel<G>(&self, c: context::Context, g: &mut G, y: u32, x: u32,
-                     color: f32)
-        where G: Graphics
-    {
-        rectangle([color, color, color, 1.],
-                  [y.into(), x.into(), SCALE.into(), SCALE.into()],
-                  c.transform, g);
     }
 }
