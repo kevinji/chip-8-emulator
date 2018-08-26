@@ -5,7 +5,7 @@
   "scripts": {
     "build": "webpack --mode production --require @babel/register",
     "lint": "eslint .",
-    "dev": "webpack --mode development --require @babel/register",
+    "start": "webpack --mode development --require @babel/register --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
