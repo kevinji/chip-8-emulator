@@ -1,6 +1,8 @@
 use rand::random;
 
 use cpu::Cpu;
+use keypad::{self, KeyState, KEYPAD};
+use view;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
@@ -140,7 +142,9 @@ impl Opcode {
     pub fn execute(&self, cpu: &mut Cpu) {
         match *self {
             Opcode::SYS => (),
-            Opcode::CLS => (), // Clear the display.
+            Opcode::CLS => {
+                view::clear();
+            },
             Opcode::RET => {
                 cpu.sp -= 1;
                 cpu.pc = cpu.stack[cpu.sp as usize];
@@ -225,19 +229,23 @@ impl Opcode {
             },
             Opcode::DRW { vx: _, vy: _, n: _ } => (), // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
             Opcode::SKP { vx } => {
-                if cpu.keypad.key_states[cpu.regs[vx] as usize] == "Press" {
+                let key_states = KEYPAD.lock().unwrap().key_states;
+                if key_states[cpu.regs[vx] as usize] == KeyState::Down {
                     cpu.push_pc();
                 }
             },
             Opcode::SKNP { vx } => {
-                if cpu.keypad.key_states[cpu.regs[vx] as usize] == "Release" {
+                let key_states = KEYPAD.lock().unwrap().key_states;
+                if key_states[cpu.regs[vx] as usize] == KeyState::Up {
                     cpu.push_pc();
                 }
             },
             Opcode::LD_R_DT { vx } => {
                 cpu.regs[vx] = cpu.delay_timer;
             },
-            Opcode::LD_R_K { vx: _ } => (), // Fx0A - Wait for a key press, store the value of the key in Vx.
+            Opcode::LD_R_K { vx } => {
+                cpu.regs[vx] = keypad::wait_for_key_press() as u8;
+            },
             Opcode::LD_DT_R { vx } => {
                 cpu.delay_timer = cpu.regs[vx];
             },

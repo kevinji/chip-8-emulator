@@ -1,7 +1,3 @@
-use failure::Error;
-
-use keypad::Keypad;
-use view::{GameState, View};
 use opcode::Opcode;
 
 pub struct Cpu {
@@ -16,9 +12,6 @@ pub struct Cpu {
 
     pub delay_timer: u8,
     pub sound_timer: u8,
-
-    pub keypad: Keypad,
-    pub view: View,
 }
 
 static FONTSET: [u8; 80] = [
@@ -41,7 +34,7 @@ static FONTSET: [u8; 80] = [
 ];
 
 impl Cpu {
-    pub fn new(rom_buf: &Vec<u8>) -> Result<Self, Error> {
+    pub fn new(rom_buf: &Vec<u8>) -> Self {
         let mut cpu = Cpu {
             memory: [0; 4096],
 
@@ -54,9 +47,6 @@ impl Cpu {
 
             delay_timer: 0,
             sound_timer: 0,
-
-            keypad: Keypad::new(),
-            view: View::new()?,
         };
 
         // Store font data before 0x200.
@@ -65,7 +55,7 @@ impl Cpu {
         // Load the chosen ROM into memory.
         cpu.load_rom(rom_buf);
 
-        Ok(cpu)
+        cpu
     }
 
     pub fn load_rom(&mut self, program: &[u8]) {
@@ -76,18 +66,6 @@ impl Cpu {
     }
 
     pub fn cycle(&mut self) {
-        /*
-        while let Some(e) = self.view.window.next() {
-            // println!("{:?}", e);
-            match e {
-                Event::Input(input) => {
-                    if let Input::Button(button_args) = input {
-                        if let Button::Keyboard(key) = button_args.button {
-                            self.keypad.update_key_state(key, button_args.state);
-                        }
-                    }
-                },
-        */
         let opcode = self.fetch_opcode();
         self.decode_and_execute_opcode(opcode);
         self.update_timers();

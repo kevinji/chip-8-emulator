@@ -1,16 +1,23 @@
 /* @flow */
 
+import MiniCssExtractPlugin from 'mini-css-extract-plugin';
 import path from 'path';
+import sass from 'sass';
 
 export default {
-  entry: {
-    main: './web-src/index.js',
-  },
+  entry: './web-src/index.js',
   output: {
     path: path.resolve(__dirname, 'web-src', 'static'),
     filename: '[name].js',
   },
   devtool: 'cheap-source-map',
+  plugins: [
+    new MiniCssExtractPlugin({
+      path: path.resolve(__dirname, 'web-src', 'static'),
+      filename: "[name].css",
+      chunkFilename: "[id].css"
+    }),
+  ],
   module: {
     rules: [
       {
@@ -20,11 +27,22 @@ export default {
         use: 'eslint-loader',
       },
       {
+        test: /\.scss$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          {
+            loader: 'sass-loader',
+            options: {
+              implementation: sass,
+            },
+          },
+        ],
+      },
+      {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-        },
+        use: 'babel-loader',
       },
     ],
   },
