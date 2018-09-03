@@ -12,6 +12,7 @@ static KEY_CODES: &[&str] = &[
 ];
 */
 
+#[wasm_bindgen]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KeyState {
     Down,
@@ -63,8 +64,7 @@ fn alert_key_press(i: usize) {
 
 #[wasm_bindgen]
 #[allow(dead_code)]
-pub fn update_key_state(i: usize, pressed: bool) {
-    let state = if pressed { KeyState::Down } else { KeyState::Up };
+pub fn update_key_state(i: usize, state: KeyState) {
     KEYPAD.lock().unwrap().update_key_state(i, state);
 
     if state == KeyState::Down {

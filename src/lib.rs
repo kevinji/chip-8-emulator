@@ -5,10 +5,10 @@ extern crate lazy_static;
 extern crate rand;
 extern crate wasm_bindgen;
 
-mod cpu;
-mod keypad;
-mod opcode;
-mod view;
+pub mod cpu;
+pub mod keypad;
+pub mod opcode;
+pub mod view;
 
 use std::fs::File;
 use std::io::Read;

@@ -126,6 +126,10 @@
   version "7.0.0-rc.3"
   resolved "https://registry.yarnpkg.com/@babel/helper-plugin-utils/-/helper-plugin-utils-7.0.0-rc.3.tgz#f68392896f4f3b90bdf7e72e5cc7127cdd5441fd"
 
+"@babel/helper-plugin-utils@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@babel/helper-plugin-utils/-/helper-plugin-utils-7.0.0.tgz#bbb3fbee98661c569034237cc03967ba99b4f250"
+
 "@babel/helper-regex@7.0.0-rc.3":
   version "7.0.0-rc.3"
   resolved "https://registry.yarnpkg.com/@babel/helper-regex/-/helper-regex-7.0.0-rc.3.tgz#1f2e11de94fc2481fc6932c07994444f6b627854"
@@ -235,6 +239,12 @@
   resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-async-generators/-/plugin-syntax-async-generators-7.0.0-rc.3.tgz#7d768f8bb18597781ade989c87519181b69764bf"
   dependencies:
     "@babel/helper-plugin-utils" "7.0.0-rc.3"
+
+"@babel/plugin-syntax-dynamic-import@7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@babel/plugin-syntax-dynamic-import/-/plugin-syntax-dynamic-import-7.0.0.tgz#6dfb7d8b6c3be14ce952962f658f3b7eb54c33ee"
+  dependencies:
+    "@babel/helper-plugin-utils" "^7.0.0"
 
 "@babel/plugin-syntax-flow@7.0.0-rc.3":
   version "7.0.0-rc.3"
@@ -549,6 +559,14 @@
     esutils "^2.0.2"
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
+
+"@wasm-tool/wasm-pack-plugin@0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@wasm-tool/wasm-pack-plugin/-/wasm-pack-plugin-0.0.5.tgz#f1b328a1bdf88d69227e8dabd9ba9cbd76a37497"
+  dependencies:
+    chalk "^2.4.1"
+    glob "^7.1.2"
+    watchpack "^1.6.0"
 
 "@webassemblyjs/ast@1.5.13":
   version "1.5.13"
@@ -4335,7 +4353,7 @@ vm-browserify@0.0.4:
   dependencies:
     indexof "0.0.1"
 
-watchpack@^1.5.0:
+watchpack@^1.5.0, watchpack@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/watchpack/-/watchpack-1.6.0.tgz#4bc12c2ebe8aa277a71f1d3f14d685c7b446cd00"
   dependencies:
