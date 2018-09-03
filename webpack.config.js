@@ -10,6 +10,9 @@ export default {
     filename: '[name].js',
   },
   devtool: 'cheap-source-map',
+  serve: {
+    content: path.resolve(__dirname, 'web-src'),
+  },
   plugins: [
     new MiniCssExtractPlugin({
       path: path.resolve(__dirname, 'web-src', 'static'),

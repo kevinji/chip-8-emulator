@@ -6,6 +6,7 @@
     "build": "webpack --mode production --require @babel/register",
     "lint": "eslint .",
     "start": "webpack --mode development --require @babel/register --watch",
+    "start:dev": "webpack-serve ./webpack.config.js --require @babel/register",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,23 +22,27 @@
   "devDependencies": {
     "@babel/core": "7.0.0",
     "@babel/plugin-syntax-dynamic-import": "7.0.0",
+    "@babel/plugin-transform-runtime": "7.0.0",
     "@babel/preset-env": "7.0.0",
     "@babel/preset-flow": "7.0.0",
     "@babel/register": "7.0.0",
-    "babel-loader": "8.0.0",
+    "babel-eslint": "9.0.0",
+    "babel-loader": "8.0.2",
     "css-loader": "1.0.0",
-    "eslint": "5.4.0",
+    "eslint": "5.5.0",
     "eslint-config-airbnb-base": "13.1.0",
     "eslint-loader": "2.1.0",
     "eslint-plugin-import": "2.14.0",
-    "flow-bin": "0.79.1",
+    "flow-bin": "0.80.0",
     "mini-css-extract-plugin": "0.4.2",
-    "sass": "1.13.0",
+    "sass": "1.13.1",
     "sass-loader": "7.1.0",
     "webpack": "4.17.1",
-    "webpack-command": "0.4.1"
+    "webpack-command": "0.4.1",
+    "webpack-serve": "2.0.2"
   },
   "dependencies": {
+    "@babel/runtime": "7.0.0",
     "normalize.css": "8.0.0"
   }
 }
