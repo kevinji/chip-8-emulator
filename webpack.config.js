@@ -1,6 +1,5 @@
 /* @flow */
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
-import WasmPackPlugin from '@wasm-tool/wasm-pack-plugin';
 import path from 'path';
 import sass from 'sass';
 
@@ -46,9 +45,4 @@ export default {
       },
     ],
   },
-  plugins: [
-    new WasmPackPlugin({
-      crateDirectory: path.resolve(__dirname, 'crate'),
-    }),
-  ],
 };

@@ -556,14 +556,6 @@
     lodash "^4.17.10"
     to-fast-properties "^2.0.0"
 
-"@wasm-tool/wasm-pack-plugin@0.0.6":
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/@wasm-tool/wasm-pack-plugin/-/wasm-pack-plugin-0.0.6.tgz#1176672b40d895992ceb6cfb6e9eabb6d14c177f"
-  dependencies:
-    chalk "^2.4.1"
-    glob "^7.1.2"
-    watchpack "^1.6.0"
-
 "@webassemblyjs/ast@1.5.13":
   version "1.5.13"
   resolved "https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.5.13.tgz#81155a570bd5803a30ec31436bc2c9c0ede38f25"
@@ -4361,7 +4353,7 @@ vm-browserify@0.0.4:
   dependencies:
     indexof "0.0.1"
 
-watchpack@^1.5.0, watchpack@^1.6.0:
+watchpack@^1.5.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/watchpack/-/watchpack-1.6.0.tgz#4bc12c2ebe8aa277a71f1d3f14d685c7b446cd00"
   dependencies:
