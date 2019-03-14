@@ -6,18 +6,22 @@ import sass from 'sass';
 export default {
   entry: './web-src/index.js',
   output: {
+    publicPath: '/static/',
     path: path.resolve(__dirname, 'web-src', 'static'),
     filename: '[name].js',
   },
   devtool: 'cheap-source-map',
   serve: {
     content: path.resolve(__dirname, 'web-src'),
+    devMiddleware: {
+      publicPath: '/static/',
+    },
   },
   plugins: [
     new MiniCssExtractPlugin({
       path: path.resolve(__dirname, 'web-src', 'static'),
-      filename: "[name].css",
-      chunkFilename: "[id].css"
+      filename: '[name].css',
+      chunkFilename: '[id].css',
     }),
   ],
   module: {
