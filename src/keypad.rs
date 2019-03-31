@@ -1,7 +1,5 @@
 use std::sync::{Condvar, Mutex};
 
-use wasm_bindgen::prelude::*;
-
 const KEY_COUNT: usize = 16;
 
 /*
@@ -12,7 +10,6 @@ static KEY_CODES: &[&str] = &[
 ];
 */
 
-#[wasm_bindgen]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KeyState {
     Down,
@@ -62,7 +59,6 @@ fn alert_key_press(i: usize) {
     cvar.notify_one();
 }
 
-#[wasm_bindgen]
 #[allow(dead_code)]
 pub fn update_key_state(i: usize, state: KeyState) {
     KEYPAD.lock().unwrap().update_key_state(i, state);

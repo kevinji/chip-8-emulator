@@ -1,6 +1,7 @@
 use opcode::Opcode;
+use view::View;
 
-pub struct Cpu {
+pub struct Cpu<'a> {
     pub memory: [u8; 4096],
 
     pub regs: [u8; 16],
@@ -12,6 +13,8 @@ pub struct Cpu {
 
     pub delay_timer: u8,
     pub sound_timer: u8,
+
+    pub view: &'a View,
 }
 
 static FONTSET: [u8; 80] = [
@@ -33,8 +36,8 @@ static FONTSET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
-impl Cpu {
-    pub fn new(rom_buf: &Vec<u8>) -> Self {
+impl<'a> Cpu<'a> {
+    pub fn new(rom_buf: &[u8], view: &'a View) -> Self {
         let mut cpu = Cpu {
             memory: [0; 4096],
 
@@ -47,6 +50,8 @@ impl Cpu {
 
             delay_timer: 0,
             sound_timer: 0,
+
+            view,
         };
 
         // Store font data before 0x200.

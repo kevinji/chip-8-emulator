@@ -1,5 +1,6 @@
 extern crate failure;
 extern crate js_sys;
+extern crate web_sys;
 #[macro_use]
 extern crate lazy_static;
 extern crate rand;
@@ -10,32 +11,32 @@ pub mod keypad;
 pub mod opcode;
 pub mod view;
 
-use std::fs::File;
-use std::io::Read;
-
 use failure::Fallible;
 use wasm_bindgen::prelude::*;
+use web_sys::*;
 
 use cpu::Cpu;
+use view::View;
 
-const DEFAULT_ROM: &str = "PONG";
-
-#[wasm_bindgen]
+#[wasm_bindgen(start)]
 pub fn entry() {
-    main().unwrap()
+    console::log_1(&"Hello world!".into());
+    match main() {
+        Ok(()) => (),
+        Err(error) => {
+            let error = format!("{}", error);
+            console::error_1(&error.into())
+        },
+    }
 }
 
-fn main() -> Fallible<()> {
-    let mut rom_buf = Vec::new();
-    read_rom(DEFAULT_ROM, &mut rom_buf)?;
+pub fn main() -> Fallible<()> {
+    // TODO: Enable loading the other roms.
+    let rom_buf = include_bytes!("../roms/PONG.rom");
 
-    let mut cpu = Cpu::new(&rom_buf);
+    console::log_1(&"Finished reading ROMs".into());
+    let view = View::new()?;
+    let mut cpu = Cpu::new(rom_buf, &view);
     cpu.cycle();
-    Ok(())
-}
-
-fn read_rom(name: &str, buf: &mut Vec<u8>) -> Fallible<()> {
-    let mut f = File::open(format!("roms/{}.rom", name))?;
-    f.read_to_end(buf)?;
     Ok(())
 }

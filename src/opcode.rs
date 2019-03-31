@@ -2,7 +2,6 @@ use rand::random;
 
 use cpu::Cpu;
 use keypad::{self, KeyState, KEYPAD};
-use view;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
@@ -143,7 +142,7 @@ impl Opcode {
         match *self {
             Opcode::SYS => (),
             Opcode::CLS => {
-                view::clear();
+                cpu.view.clear().unwrap();
             },
             Opcode::RET => {
                 cpu.sp -= 1;
