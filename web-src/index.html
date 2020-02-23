@@ -10,11 +10,10 @@
   <body>
     <canvas id="view" width="640" height="320" tabindex="1"></canvas>
     <script type="module">
-      import { entry, default as init } from './pkg/chip_8_emulator.js';
+      import init, {} from './pkg/chip_8_emulator.js';
 
       async function run() {
-        await init('./pkg/chip_8_emulator_bg.wasm');
-        entry();
+        await init();
       }
 
       run();

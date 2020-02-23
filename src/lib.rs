@@ -19,18 +19,12 @@ use cpu::Cpu;
 use view::View;
 
 #[wasm_bindgen(start)]
-pub fn entry() {
+pub fn entry() -> Result<(), JsValue> {
     console::log_1(&"Hello world!".into());
-    match main() {
-        Ok(()) => (),
-        Err(error) => {
-            let error = format!("{}", error);
-            console::error_1(&error.into())
-        },
-    }
+    main().map_err(|error| error.to_string().into())
 }
 
-pub fn main() -> Fallible<()> {
+fn main() -> Fallible<()> {
     // TODO: Enable loading the other roms.
     let rom_buf = include_bytes!("../roms/PONG.rom");
 
