@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use failure::{Fallible, format_err};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
@@ -12,7 +13,7 @@ pub struct View {
 impl View {
     const SCALE: f64 = 10.;
 
-    pub fn new() -> Fallible<Self> {
+    pub fn new() -> Fallible<Rc<Self>> {
         let window = window().unwrap();
         let document = window.document().unwrap();
         let canvas = document.get_element_by_id("view").unwrap()
@@ -29,13 +30,14 @@ impl View {
         ctx.scale(View::SCALE, View::SCALE)
             .map_err(|_| format_err!("Failed to scale ctx"))?;
 
-        let view = View { canvas, ctx };
-        let step = Closure::once_into_js(|| {
-            view.step()
-        });
+        let view = Rc::new(View { canvas, ctx });
+        let view_clone = view.clone();
+        let step = Closure::wrap(Box::new(move || {
+            view_clone.step()
+        }) as Box<dyn Fn()>);
 
         // See https://rustwasm.github.io/docs/wasm-bindgen/examples/request-animation-frame.html.
-        window.request_animation_frame(&step.into())
+        window.request_animation_frame(step.as_ref().unchecked_ref())
             .map_err(|_| format_err!("Failed to call requestAnimationFrame"))?;
 
         Ok(view)
