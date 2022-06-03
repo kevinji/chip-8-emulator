@@ -1,7 +1,6 @@
+use failure::{format_err, Fallible};
 use std::rc::Rc;
-use failure::{Fallible, format_err};
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::*;
 
 #[derive(Clone, Debug)]
@@ -16,28 +15,28 @@ impl View {
     pub fn new() -> Fallible<Rc<Self>> {
         let window = window().unwrap();
         let document = window.document().unwrap();
-        let canvas = document.get_element_by_id("view").unwrap()
+        let canvas = document
+            .get_element_by_id("view")
+            .unwrap()
             .dyn_into::<HtmlCanvasElement>()
-            .map_err(|_| format_err!(
-                "Failed to convert #view to an HtmlCanvasElement"))?;
-        let ctx = canvas.get_context("2d")
+            .map_err(|_| format_err!("Failed to convert #view to an HtmlCanvasElement"))?;
+        let ctx = canvas
+            .get_context("2d")
             .unwrap()
             .unwrap()
             .dyn_into::<CanvasRenderingContext2d>()
-            .map_err(|_| format_err!(
-                "Failed to convert ctx to an CanvasRenderingContext2d"))?;
+            .map_err(|_| format_err!("Failed to convert ctx to an CanvasRenderingContext2d"))?;
 
         ctx.scale(View::SCALE, View::SCALE)
             .map_err(|_| format_err!("Failed to scale ctx"))?;
 
         let view = Rc::new(View { canvas, ctx });
         let view_clone = Rc::clone(&view);
-        let step = Closure::wrap(Box::new(move || {
-            view_clone.step()
-        }) as Box<dyn Fn()>);
+        let step = Closure::wrap(Box::new(move || view_clone.step()) as Box<dyn Fn()>);
 
         // See https://rustwasm.github.io/docs/wasm-bindgen/examples/request-animation-frame.html.
-        window.request_animation_frame(step.as_ref().unchecked_ref())
+        window
+            .request_animation_frame(step.as_ref().unchecked_ref())
             .map_err(|_| format_err!("Failed to call requestAnimationFrame"))?;
 
         step.forget();
@@ -64,11 +63,16 @@ impl View {
         self.ctx.save();
 
         // Use the identity matrix while clearing the canvas.
-        self.ctx.set_transform(1., 0., 0., 1., 0., 0.)
+        self.ctx
+            .set_transform(1., 0., 0., 1., 0., 0.)
             .map_err(|_| format_err!("Failed to transform canvas"))?;
 
         self.ctx.clear_rect(
-            0., 0., self.canvas.width().into(), self.canvas.height().into());
+            0.,
+            0.,
+            self.canvas.width().into(),
+            self.canvas.height().into(),
+        );
 
         // Restore transformation matrix.
         self.ctx.restore();

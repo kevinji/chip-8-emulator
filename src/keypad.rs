@@ -1,3 +1,4 @@
+use lazy_static::lazy_static;
 use std::sync::{Condvar, Mutex};
 
 const KEY_COUNT: usize = 16;
@@ -17,7 +18,9 @@ pub enum KeyState {
 }
 
 impl Default for KeyState {
-    fn default() -> KeyState { KeyState::Down }
+    fn default() -> KeyState {
+        KeyState::Down
+    }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -38,8 +41,7 @@ impl Keypad {
 // Keep the Keypad public for wasm_bindgen.
 lazy_static! {
     pub static ref KEYPAD: Mutex<Keypad> = Mutex::new(Keypad::new());
-    static ref WAIT: (Mutex<Option<usize>>, Condvar) =
-        (Mutex::new(None), Condvar::new());
+    static ref WAIT: (Mutex<Option<usize>>, Condvar) = (Mutex::new(None), Condvar::new());
 }
 
 pub fn wait_for_key_press() -> usize {

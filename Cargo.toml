@@ -9,6 +9,7 @@ A CHIP-8 emulator written with Rust.
 """
 
 build = "build.rs"
+edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]

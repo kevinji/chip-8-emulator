@@ -1,12 +1,11 @@
-use opcode::Opcode;
-use view::View;
+use crate::{opcode::Opcode, view::View};
 
 pub struct Cpu<'a> {
     pub memory: [u8; 4096],
 
     pub regs: [u8; 16],
     pub i_reg: u16, // Index register
-    pub pc: u16, // Program counter
+    pub pc: u16,    // Program counter
 
     pub stack: [u16; 16],
     pub sp: u8, // Stack pointer
@@ -64,10 +63,13 @@ impl<'a> Cpu<'a> {
     }
 
     pub fn load_rom(&mut self, program: &[u8]) {
-        assert!(self.memory.len() >= 0x200 + program.len(), "Program does not fit in memory.");
+        assert!(
+            self.memory.len() >= 0x200 + program.len(),
+            "Program does not fit in memory."
+        );
 
         // Fill memory from 0x200.
-        self.memory[0x200..0x200+program.len()].copy_from_slice(program);
+        self.memory[0x200..0x200 + program.len()].copy_from_slice(program);
     }
 
     pub fn cycle(&mut self) {
@@ -80,8 +82,7 @@ impl<'a> Cpu<'a> {
         assert!(self.pc < 4095, "pc is outside memory bounds!");
 
         // Opcode is 2 bytes, big-endian.
-        (self.memory[self.pc as usize] as u16) << 8
-            | (self.memory[(self.pc + 1) as usize] as u16)
+        (self.memory[self.pc as usize] as u16) << 8 | (self.memory[(self.pc + 1) as usize] as u16)
     }
 
     fn decode_and_execute_opcode(&mut self, opcode: u16) {

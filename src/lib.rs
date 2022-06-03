@@ -1,11 +1,3 @@
-extern crate failure;
-extern crate js_sys;
-extern crate web_sys;
-#[macro_use]
-extern crate lazy_static;
-extern crate rand;
-extern crate wasm_bindgen;
-
 pub mod cpu;
 pub mod keypad;
 pub mod opcode;
