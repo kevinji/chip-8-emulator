@@ -1,7 +1,7 @@
 use failure::{format_err, Fallible};
 use std::rc::Rc;
 use wasm_bindgen::{prelude::*, JsCast};
-use web_sys::*;
+use web_sys::{window, CanvasRenderingContext2d, HtmlCanvasElement};
 
 #[derive(Clone, Debug)]
 pub struct View {
@@ -54,7 +54,7 @@ impl View {
         } else {
             "rgb(255, 255, 255)"
         };
-        self.ctx.set_fill_style(&JsValue::from_str(&fill_color));
+        self.ctx.set_fill_style(&JsValue::from_str(fill_color));
         self.ctx.fill_rect(x, y, 1., 1.);
     }
 

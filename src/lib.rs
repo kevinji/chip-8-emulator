@@ -5,7 +5,7 @@ pub mod view;
 
 use failure::Fallible;
 use wasm_bindgen::prelude::*;
-use web_sys::*;
+use web_sys::console;
 
 use cpu::Cpu;
 use view::View;

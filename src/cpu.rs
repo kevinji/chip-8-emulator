@@ -4,11 +4,14 @@ pub struct Cpu<'a> {
     pub memory: [u8; 4096],
 
     pub regs: [u8; 16],
-    pub i_reg: u16, // Index register
-    pub pc: u16,    // Program counter
+    /// Index register
+    pub i_reg: u16,
+    /// Program counter
+    pub pc: u16,
 
     pub stack: [u16; 16],
-    pub sp: u8, // Stack pointer
+    /// Stack pointer
+    pub sp: u8,
 
     pub delay_timer: u8,
     pub sound_timer: u8,
@@ -36,6 +39,7 @@ static FONTSET: [u8; 80] = [
 ];
 
 impl<'a> Cpu<'a> {
+    #[must_use]
     pub fn new(rom_buf: &[u8], view: &'a View) -> Self {
         let mut cpu = Cpu {
             memory: [0; 4096],
@@ -62,6 +66,8 @@ impl<'a> Cpu<'a> {
         cpu
     }
 
+    /// # Panics
+    /// Panics if the program does not fit into memory.
     pub fn load_rom(&mut self, program: &[u8]) {
         assert!(
             self.memory.len() >= 0x200 + program.len(),
@@ -82,7 +88,8 @@ impl<'a> Cpu<'a> {
         assert!(self.pc < 4095, "pc is outside memory bounds!");
 
         // Opcode is 2 bytes, big-endian.
-        (self.memory[self.pc as usize] as u16) << 8 | (self.memory[(self.pc + 1) as usize] as u16)
+        u16::from(self.memory[self.pc as usize]) << 8
+            | u16::from(self.memory[(self.pc + 1) as usize])
     }
 
     fn decode_and_execute_opcode(&mut self, opcode: u16) {

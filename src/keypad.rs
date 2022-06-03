@@ -18,7 +18,7 @@ pub enum KeyState {
 }
 
 impl Default for KeyState {
-    fn default() -> KeyState {
+    fn default() -> Self {
         KeyState::Down
     }
 }
@@ -29,8 +29,9 @@ pub struct Keypad {
 }
 
 impl Keypad {
+    #[must_use]
     pub fn new() -> Self {
-        Default::default()
+        Self::default()
     }
 
     pub fn update_key_state(&mut self, i: usize, state: KeyState) {
@@ -51,7 +52,7 @@ pub fn wait_for_key_press() -> usize {
         key = cvar.wait(key).unwrap();
     }
 
-    return key.unwrap();
+    key.unwrap()
 }
 
 fn alert_key_press(i: usize) {

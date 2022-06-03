@@ -7,41 +7,76 @@ use rand::random;
 #[allow(non_camel_case_types)]
 #[derive(Debug)]
 pub enum Opcode {
-    SYS,                                 // 0nnn - Jump to a machine code routine at nnn. (ignored)
-    CLS,                                 // 00E0 - Clear the display.
-    RET,                                 // 00EE - Return from a subroutine.
-    JP { addr: u16 },                    // 1nnn - Jump to location nnn.
-    CALL { addr: u16 },                  // 2nnn - Call subroutine at nnn.
-    SE { vx: usize, byte: u8 },          // 3xkk - Skip next instruction if Vx = kk.
-    SNE { vx: usize, byte: u8 },         // 4xkk - Skip next instruction if Vx != kk.
-    SE_R { vx: usize, vy: usize },       // 5xy0 - Skip next instruction if Vx = Vy.
-    LD { vx: usize, byte: u8 },          // 6xkk - Set Vx = kk.
-    ADD { vx: usize, byte: u8 },         // 7xkk - Set Vx = Vx + kk.
-    LD_R { vx: usize, vy: usize },       // 8xy0 - Set Vx = Vy.
-    OR_R { vx: usize, vy: usize },       // 8xy1 - Set Vx = Vx OR Vy.
-    AND_R { vx: usize, vy: usize },      // 8xy2 - Set Vx = Vx AND Vy.
-    XOR_R { vx: usize, vy: usize },      // 8xy3 - Set Vx = Vx XOR Vy.
-    ADD_R { vx: usize, vy: usize },      // 8xy4 - Set Vx = Vx + Vy, set VF = carry.
-    SUB_R { vx: usize, vy: usize },      // 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
-    SHR { vx: usize },                   // 8xy6 - Set Vx = Vx SHR 1.
-    SUBN_R { vx: usize, vy: usize },     // 8xy7 - Set Vx = Vy - Vx, set VF = NOT borrow.
-    SHL { vx: usize },                   // 8xyE - Set Vx = Vx SHL 1.
-    SNE_R { vx: usize, vy: usize },      // 9xy0 - Skip next instruction if Vx != Vy.
-    LD_A { addr: u16 },                  // Annn - Set I = nnn.
-    JP_A { addr: u16 },                  // Bnnn - Jump to location nnn + V0.
-    RND { vx: usize, byte: u8 },         // Cxkk - Set Vx = random byte AND kk.
-    DRW { vx: usize, vy: usize, n: u8 }, // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
-    SKP { vx: usize }, // Ex9E - Skip next instruction if key with the value of Vx is pressed.
-    SKNP { vx: usize }, // ExA1 - Skip next instruction if key with the value of Vx is not pressed.
-    LD_R_DT { vx: usize }, // Fx07 - Set Vx = delay timer value.
-    LD_R_K { vx: usize }, // Fx0A - Wait for a key press, store the value of the key in Vx.
-    LD_DT_R { vx: usize }, // Fx15 - Set delay timer = Vx.
-    LD_DT_S { vx: usize }, // Fx18 - Set sound timer = Vx.
-    ADD_I { vx: usize }, // Fx1E - Set I = I + Vx.
-    LD_F { vx: usize }, // Fx29 - Set I = location of sprite for digit Vx.
-    LD_B { vx: usize }, // Fx33 - Store BCD representation of Vx in memory locations I, I+1, and I+2.
-    LD_I_R { vx: usize }, // Fx55 - Store registers V0 through Vx in memory starting at location I.
-    LD_R_I { vx: usize }, // Fx65 - Read registers V0 through Vx from memory starting at location I.
+    /// 0nnn - Jump to a machine code routine at nnn. (ignored)
+    SYS,
+    /// 00E0 - Clear the display.
+    CLS,
+    /// 00EE - Return from a subroutine.
+    RET,
+    /// 1nnn - Jump to location nnn.
+    JP { addr: u16 },
+    /// 2nnn - Call subroutine at nnn.
+    CALL { addr: u16 },
+    /// 3xkk - Skip next instruction if Vx = kk.
+    SE { vx: usize, byte: u8 },
+    /// 4xkk - Skip next instruction if Vx != kk.
+    SNE { vx: usize, byte: u8 },
+    /// 5xy0 - Skip next instruction if Vx = Vy.
+    SE_R { vx: usize, vy: usize },
+    /// 6xkk - Set Vx = kk.
+    LD { vx: usize, byte: u8 },
+    /// 7xkk - Set Vx = Vx + kk.
+    ADD { vx: usize, byte: u8 },
+    /// 8xy0 - Set Vx = Vy.
+    LD_R { vx: usize, vy: usize },
+    /// 8xy1 - Set Vx = Vx OR Vy.
+    OR_R { vx: usize, vy: usize },
+    /// 8xy2 - Set Vx = Vx AND Vy.
+    AND_R { vx: usize, vy: usize },
+    /// 8xy3 - Set Vx = Vx XOR Vy.
+    XOR_R { vx: usize, vy: usize },
+    /// 8xy4 - Set Vx = Vx + Vy, set VF = carry.
+    ADD_R { vx: usize, vy: usize },
+    /// 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
+    SUB_R { vx: usize, vy: usize },
+    /// 8xy6 - Set Vx = Vx SHR 1.
+    SHR { vx: usize },
+    /// 8xy7 - Set Vx = Vy - Vx, set VF = NOT borrow.
+    SUBN_R { vx: usize, vy: usize },
+    /// 8xyE - Set Vx = Vx SHL 1.
+    SHL { vx: usize },
+    /// 9xy0 - Skip next instruction if Vx != Vy.
+    SNE_R { vx: usize, vy: usize },
+    /// Annn - Set I = nnn.
+    LD_A { addr: u16 },
+    /// Bnnn - Jump to location nnn + V0.
+    JP_A { addr: u16 },
+    /// Cxkk - Set Vx = random byte AND kk.
+    RND { vx: usize, byte: u8 },
+    /// Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+    DRW { vx: usize, vy: usize, n: u8 },
+    /// Ex9E - Skip next instruction if key with the value of Vx is pressed.
+    SKP { vx: usize },
+    /// ExA1 - Skip next instruction if key with the value of Vx is not pressed.
+    SKNP { vx: usize },
+    /// Fx07 - Set Vx = delay timer value.
+    LD_R_DT { vx: usize },
+    /// Fx0A - Wait for a key press, store the value of the key in Vx.
+    LD_R_K { vx: usize },
+    /// Fx15 - Set delay timer = Vx.
+    LD_DT_R { vx: usize },
+    /// Fx18 - Set sound timer = Vx.
+    LD_DT_S { vx: usize },
+    /// Fx1E - Set I = I + Vx.
+    ADD_I { vx: usize },
+    /// Fx29 - Set I = location of sprite for digit Vx.
+    LD_F { vx: usize },
+    /// Fx33 - Store BCD representation of Vx in memory locations I, I+1, and I+2.
+    LD_B { vx: usize },
+    /// Fx55 - Store registers V0 through Vx in memory starting at location I.
+    LD_I_R { vx: usize },
+    /// Fx65 - Read registers V0 through Vx from memory starting at location I.
+    LD_R_I { vx: usize },
 }
 
 impl From<u16> for Opcode {
@@ -105,7 +140,7 @@ impl From<u16> for Opcode {
                     vy: vy(opcode),
                 },
                 0xE => Opcode::SHL { vx: vx(opcode) },
-                _ => panic!("Opcode not implemented!"),
+                _ => unimplemented!("Opcode not implemented!"),
             },
             0x9 => Opcode::SNE_R {
                 vx: vx(opcode),
@@ -125,7 +160,7 @@ impl From<u16> for Opcode {
             0xE => match (op2(opcode), op3(opcode)) {
                 (0x9, 0xE) => Opcode::SKP { vx: vx(opcode) },
                 (0xA, 0x1) => Opcode::SKNP { vx: vx(opcode) },
-                _ => panic!("Opcode not implemented!"),
+                _ => unimplemented!("Opcode not implemented!"),
             },
             0xF => match (op2(opcode), op3(opcode)) {
                 (0x0, 0x7) => Opcode::LD_R_DT { vx: vx(opcode) },
@@ -137,9 +172,9 @@ impl From<u16> for Opcode {
                 (0x3, 0x3) => Opcode::LD_B { vx: vx(opcode) },
                 (0x5, 0x5) => Opcode::LD_I_R { vx: vx(opcode) },
                 (0x6, 0x5) => Opcode::LD_R_I { vx: vx(opcode) },
-                _ => panic!("Opcode not implemented!"),
+                _ => unimplemented!("Opcode not implemented!"),
             },
-            _ => panic!("Opcode not implemented!"),
+            _ => unimplemented!("Opcode not implemented!"),
         }
     }
 }
@@ -239,12 +274,12 @@ impl Opcode {
             Opcode::ADD_R { vx, vy } => {
                 let (sum, carry) = cpu.regs[vx].overflowing_add(cpu.regs[vy]);
                 cpu.regs[vx] = sum;
-                cpu.regs[0xF] = carry as u8;
+                cpu.regs[0xF] = carry.into();
             }
             Opcode::SUB_R { vx, vy } => {
                 let (diff, borrow) = cpu.regs[vx].overflowing_sub(cpu.regs[vy]);
                 cpu.regs[vx] = diff;
-                cpu.regs[0xF] = !borrow as u8;
+                cpu.regs[0xF] = (!borrow).into();
             }
             Opcode::SHR { vx } => {
                 cpu.regs[0xF] = cpu.regs[vx] & 0x1;
@@ -253,7 +288,7 @@ impl Opcode {
             Opcode::SUBN_R { vx, vy } => {
                 let (diff, borrow) = cpu.regs[vy].overflowing_sub(cpu.regs[vx]);
                 cpu.regs[vx] = diff;
-                cpu.regs[0xF] = !borrow as u8;
+                cpu.regs[0xF] = (!borrow).into();
             }
             Opcode::SHL { vx } => {
                 cpu.regs[0xF] = cpu.regs[vx] >> 7;
@@ -268,12 +303,14 @@ impl Opcode {
                 cpu.i_reg = addr;
             }
             Opcode::JP_A { addr } => {
-                cpu.pc = (cpu.regs[0x0] as u16) + addr;
+                cpu.pc = u16::from(cpu.regs[0x0]) + addr;
             }
             Opcode::RND { vx, byte } => {
                 cpu.regs[vx] = random::<u8>() & byte;
             }
-            Opcode::DRW { vx: _, vy: _, n: _ } => (), // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+            Opcode::DRW { vx: _, vy: _, n: _ } => {
+                // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+            }
             Opcode::SKP { vx } => {
                 let key_states = KEYPAD.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx] as usize] == KeyState::Down {
@@ -306,7 +343,7 @@ impl Opcode {
             }
             Opcode::LD_B { vx } => {
                 let mut vx_val = cpu.regs[vx];
-                for i in 2..=0 {
+                for i in (0..=2).rev() {
                     cpu.memory[cpu.i_reg as usize + i] = vx_val % 10;
                     vx_val /= 10;
                 }
