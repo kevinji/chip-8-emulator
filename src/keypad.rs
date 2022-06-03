@@ -45,6 +45,7 @@ lazy_static! {
     static ref WAIT: (Mutex<Option<usize>>, Condvar) = (Mutex::new(None), Condvar::new());
 }
 
+#[must_use]
 pub fn wait_for_key_press() -> usize {
     let &(ref lock, ref cvar) = &*WAIT;
     let mut key = lock.lock().unwrap();

@@ -3,20 +3,22 @@ pub mod keypad;
 pub mod opcode;
 pub mod view;
 
-use failure::Fallible;
+use cpu::Cpu;
+use view::View;
 use wasm_bindgen::prelude::*;
 use web_sys::console;
 
-use cpu::Cpu;
-use view::View;
-
+/// # Errors
+/// Any program errors are returned as a top-level WASM error.
 #[wasm_bindgen(start)]
 pub fn entry() -> Result<(), JsValue> {
-    console::log_1(&"Hello world!".into());
-    main().map_err(|error| error.to_string().into())
+    main().map_err(|err| err.to_string())?;
+    Ok(())
 }
 
-fn main() -> Fallible<()> {
+fn main() -> eyre::Result<()> {
+    console::log_1(&"Starting up emulator...".into());
+
     // TODO: Enable loading the other roms.
     let rom_buf = include_bytes!("../roms/PONG.rom");
 

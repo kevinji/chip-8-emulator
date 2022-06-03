@@ -1,4 +1,4 @@
-use failure::{format_err, Fallible};
+use eyre::eyre;
 use std::rc::Rc;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{window, CanvasRenderingContext2d, HtmlCanvasElement};
@@ -12,23 +12,25 @@ pub struct View {
 impl View {
     const SCALE: f64 = 10.;
 
-    pub fn new() -> Fallible<Rc<Self>> {
-        let window = window().unwrap();
-        let document = window.document().unwrap();
+    pub fn new() -> eyre::Result<Rc<Self>> {
+        let window = window().ok_or_else(|| eyre!("window does not exist"))?;
+        let document = window
+            .document()
+            .ok_or_else(|| eyre!("document does not exist"))?;
         let canvas = document
             .get_element_by_id("view")
-            .unwrap()
+            .ok_or_else(|| eyre!("#view does not exist"))?
             .dyn_into::<HtmlCanvasElement>()
-            .map_err(|_| format_err!("Failed to convert #view to an HtmlCanvasElement"))?;
+            .map_err(|_| eyre!("Failed to convert #view to an HtmlCanvasElement"))?;
         let ctx = canvas
             .get_context("2d")
-            .unwrap()
-            .unwrap()
+            .map_err(|_| eyre!("Failed to get 2d canvas context"))?
+            .ok_or_else(|| eyre!("Failed to get 2d canvas context"))?
             .dyn_into::<CanvasRenderingContext2d>()
-            .map_err(|_| format_err!("Failed to convert ctx to an CanvasRenderingContext2d"))?;
+            .map_err(|_| eyre!("Failed to convert ctx to an CanvasRenderingContext2d"))?;
 
         ctx.scale(View::SCALE, View::SCALE)
-            .map_err(|_| format_err!("Failed to scale ctx"))?;
+            .map_err(|_| eyre!("Failed to scale ctx"))?;
 
         let view = Rc::new(View { canvas, ctx });
         let view_clone = Rc::clone(&view);
@@ -37,7 +39,7 @@ impl View {
         // See https://rustwasm.github.io/docs/wasm-bindgen/examples/request-animation-frame.html.
         window
             .request_animation_frame(step.as_ref().unchecked_ref())
-            .map_err(|_| format_err!("Failed to call requestAnimationFrame"))?;
+            .map_err(|_| eyre!("Failed to call requestAnimationFrame"))?;
 
         step.forget();
 
@@ -58,14 +60,14 @@ impl View {
         self.ctx.fill_rect(x, y, 1., 1.);
     }
 
-    pub fn clear(&self) -> Fallible<()> {
+    pub fn clear(&self) -> eyre::Result<()> {
         // Save transformation matrix.
         self.ctx.save();
 
         // Use the identity matrix while clearing the canvas.
         self.ctx
             .set_transform(1., 0., 0., 1., 0., 0.)
-            .map_err(|_| format_err!("Failed to transform canvas"))?;
+            .map_err(|_| eyre!("Failed to transform canvas"))?;
 
         self.ctx.clear_rect(
             0.,

@@ -15,7 +15,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-failure = "0.1"
+eyre = "0.6"
 js-sys = "0.3"
 lazy_static = "1.4"
 rand = "0.8"
