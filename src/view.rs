@@ -29,12 +29,12 @@ impl View {
             .dyn_into::<CanvasRenderingContext2d>()
             .map_err(|_| eyre!("Failed to convert ctx to an CanvasRenderingContext2d"))?;
 
-        ctx.scale(View::SCALE, View::SCALE)
+        ctx.scale(Self::SCALE, Self::SCALE)
             .map_err(|_| eyre!("Failed to scale ctx"))?;
 
-        let view = Rc::new(View { canvas, ctx });
+        let view = Rc::new(Self { canvas, ctx });
         let view_clone = Rc::clone(&view);
-        let step = Closure::wrap(Box::new(move || view_clone.step()) as Box<dyn Fn()>);
+        let step: Closure<dyn Fn()> = Closure::wrap(Box::new(move || view_clone.step()));
 
         // See https://rustwasm.github.io/docs/wasm-bindgen/examples/request-animation-frame.html.
         window

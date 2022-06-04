@@ -41,7 +41,7 @@ static FONTSET: [u8; 80] = [
 impl<'a> Cpu<'a> {
     #[must_use]
     pub fn new(rom_buf: &[u8], view: &'a View) -> Self {
-        let mut cpu = Cpu {
+        let mut cpu = Self {
             memory: [0; 4096],
 
             regs: [0; 16],

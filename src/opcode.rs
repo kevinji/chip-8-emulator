@@ -83,95 +83,95 @@ impl From<u16> for Opcode {
     fn from(opcode: u16) -> Self {
         match op0(opcode) {
             0x0 => match (op1(opcode), op2(opcode), op3(opcode)) {
-                (0x0, 0xE, 0x0) => Opcode::CLS,
-                (0x0, 0xE, 0xE) => Opcode::RET,
-                _ => Opcode::SYS,
+                (0x0, 0xE, 0x0) => Self::CLS,
+                (0x0, 0xE, 0xE) => Self::RET,
+                _ => Self::SYS,
             },
-            0x1 => Opcode::JP { addr: addr(opcode) },
-            0x2 => Opcode::CALL { addr: addr(opcode) },
-            0x3 => Opcode::SE {
+            0x1 => Self::JP { addr: addr(opcode) },
+            0x2 => Self::CALL { addr: addr(opcode) },
+            0x3 => Self::SE {
                 vx: vx(opcode),
                 byte: byte(opcode),
             },
-            0x4 => Opcode::SNE {
+            0x4 => Self::SNE {
                 vx: vx(opcode),
                 byte: byte(opcode),
             },
-            0x5 => Opcode::SE_R {
+            0x5 => Self::SE_R {
                 vx: vx(opcode),
                 vy: vy(opcode),
             },
-            0x6 => Opcode::LD {
+            0x6 => Self::LD {
                 vx: vx(opcode),
                 byte: byte(opcode),
             },
-            0x7 => Opcode::ADD {
+            0x7 => Self::ADD {
                 vx: vx(opcode),
                 byte: byte(opcode),
             },
             0x8 => match op3(opcode) {
-                0x0 => Opcode::LD_R {
+                0x0 => Self::LD_R {
                     vx: vx(opcode),
                     vy: vy(opcode),
                 },
-                0x1 => Opcode::OR_R {
+                0x1 => Self::OR_R {
                     vx: vx(opcode),
                     vy: vy(opcode),
                 },
-                0x2 => Opcode::AND_R {
+                0x2 => Self::AND_R {
                     vx: vx(opcode),
                     vy: vy(opcode),
                 },
-                0x3 => Opcode::XOR_R {
+                0x3 => Self::XOR_R {
                     vx: vx(opcode),
                     vy: vy(opcode),
                 },
-                0x4 => Opcode::ADD_R {
+                0x4 => Self::ADD_R {
                     vx: vx(opcode),
                     vy: vy(opcode),
                 },
-                0x5 => Opcode::SUB_R {
+                0x5 => Self::SUB_R {
                     vx: vx(opcode),
                     vy: vy(opcode),
                 },
-                0x6 => Opcode::SHR { vx: vx(opcode) },
-                0x7 => Opcode::SUBN_R {
+                0x6 => Self::SHR { vx: vx(opcode) },
+                0x7 => Self::SUBN_R {
                     vx: vx(opcode),
                     vy: vy(opcode),
                 },
-                0xE => Opcode::SHL { vx: vx(opcode) },
+                0xE => Self::SHL { vx: vx(opcode) },
                 _ => unimplemented!("Opcode not implemented!"),
             },
-            0x9 => Opcode::SNE_R {
+            0x9 => Self::SNE_R {
                 vx: vx(opcode),
                 vy: vy(opcode),
             },
-            0xA => Opcode::LD_A { addr: addr(opcode) },
-            0xB => Opcode::JP_A { addr: addr(opcode) },
-            0xC => Opcode::RND {
+            0xA => Self::LD_A { addr: addr(opcode) },
+            0xB => Self::JP_A { addr: addr(opcode) },
+            0xC => Self::RND {
                 vx: vx(opcode),
                 byte: byte(opcode),
             },
-            0xD => Opcode::DRW {
+            0xD => Self::DRW {
                 vx: vx(opcode),
                 vy: vy(opcode),
                 n: op3(opcode),
             },
             0xE => match (op2(opcode), op3(opcode)) {
-                (0x9, 0xE) => Opcode::SKP { vx: vx(opcode) },
-                (0xA, 0x1) => Opcode::SKNP { vx: vx(opcode) },
+                (0x9, 0xE) => Self::SKP { vx: vx(opcode) },
+                (0xA, 0x1) => Self::SKNP { vx: vx(opcode) },
                 _ => unimplemented!("Opcode not implemented!"),
             },
             0xF => match (op2(opcode), op3(opcode)) {
-                (0x0, 0x7) => Opcode::LD_R_DT { vx: vx(opcode) },
-                (0x0, 0xA) => Opcode::LD_R_K { vx: vx(opcode) },
-                (0x1, 0x5) => Opcode::LD_DT_R { vx: vx(opcode) },
-                (0x1, 0x8) => Opcode::LD_DT_S { vx: vx(opcode) },
-                (0x1, 0xE) => Opcode::ADD_I { vx: vx(opcode) },
-                (0x2, 0x9) => Opcode::LD_F { vx: vx(opcode) },
-                (0x3, 0x3) => Opcode::LD_B { vx: vx(opcode) },
-                (0x5, 0x5) => Opcode::LD_I_R { vx: vx(opcode) },
-                (0x6, 0x5) => Opcode::LD_R_I { vx: vx(opcode) },
+                (0x0, 0x7) => Self::LD_R_DT { vx: vx(opcode) },
+                (0x0, 0xA) => Self::LD_R_K { vx: vx(opcode) },
+                (0x1, 0x5) => Self::LD_DT_R { vx: vx(opcode) },
+                (0x1, 0x8) => Self::LD_DT_S { vx: vx(opcode) },
+                (0x1, 0xE) => Self::ADD_I { vx: vx(opcode) },
+                (0x2, 0x9) => Self::LD_F { vx: vx(opcode) },
+                (0x3, 0x3) => Self::LD_B { vx: vx(opcode) },
+                (0x5, 0x5) => Self::LD_I_R { vx: vx(opcode) },
+                (0x6, 0x5) => Self::LD_R_I { vx: vx(opcode) },
                 _ => unimplemented!("Opcode not implemented!"),
             },
             _ => unimplemented!("Opcode not implemented!"),
@@ -222,138 +222,138 @@ fn addr(opcode: u16) -> u16 {
 impl Opcode {
     pub fn execute(&self, cpu: &mut Cpu) {
         match *self {
-            Opcode::SYS => (),
-            Opcode::CLS => {
+            Self::SYS => (),
+            Self::CLS => {
                 cpu.view.clear().unwrap();
             }
-            Opcode::RET => {
+            Self::RET => {
                 cpu.sp -= 1;
                 cpu.pc = cpu.stack[cpu.sp as usize];
             }
-            Opcode::JP { addr } => {
+            Self::JP { addr } => {
                 cpu.pc = addr;
             }
-            Opcode::CALL { addr } => {
+            Self::CALL { addr } => {
                 cpu.stack[cpu.sp as usize] = cpu.pc;
                 cpu.sp += 1;
                 cpu.pc = addr;
             }
-            Opcode::SE { vx, byte } => {
+            Self::SE { vx, byte } => {
                 if cpu.regs[vx] == byte {
                     cpu.push_pc();
                 }
             }
-            Opcode::SNE { vx, byte } => {
+            Self::SNE { vx, byte } => {
                 if cpu.regs[vx] != byte {
                     cpu.push_pc();
                 }
             }
-            Opcode::SE_R { vx, vy } => {
+            Self::SE_R { vx, vy } => {
                 if cpu.regs[vx] == cpu.regs[vy] {
                     cpu.push_pc();
                 }
             }
-            Opcode::LD { vx, byte } => {
+            Self::LD { vx, byte } => {
                 cpu.regs[vx] = byte;
             }
-            Opcode::ADD { vx, byte } => {
+            Self::ADD { vx, byte } => {
                 cpu.regs[vx] = cpu.regs[vx].wrapping_add(byte);
             }
-            Opcode::LD_R { vx, vy } => {
+            Self::LD_R { vx, vy } => {
                 cpu.regs[vx] = cpu.regs[vy];
             }
-            Opcode::OR_R { vx, vy } => {
+            Self::OR_R { vx, vy } => {
                 cpu.regs[vx] |= cpu.regs[vy];
             }
-            Opcode::AND_R { vx, vy } => {
+            Self::AND_R { vx, vy } => {
                 cpu.regs[vx] &= cpu.regs[vy];
             }
-            Opcode::XOR_R { vx, vy } => {
+            Self::XOR_R { vx, vy } => {
                 cpu.regs[vx] ^= cpu.regs[vy];
             }
-            Opcode::ADD_R { vx, vy } => {
+            Self::ADD_R { vx, vy } => {
                 let (sum, carry) = cpu.regs[vx].overflowing_add(cpu.regs[vy]);
                 cpu.regs[vx] = sum;
                 cpu.regs[0xF] = carry.into();
             }
-            Opcode::SUB_R { vx, vy } => {
+            Self::SUB_R { vx, vy } => {
                 let (diff, borrow) = cpu.regs[vx].overflowing_sub(cpu.regs[vy]);
                 cpu.regs[vx] = diff;
                 cpu.regs[0xF] = (!borrow).into();
             }
-            Opcode::SHR { vx } => {
+            Self::SHR { vx } => {
                 cpu.regs[0xF] = cpu.regs[vx] & 0x1;
                 cpu.regs[vx] >>= 1;
             }
-            Opcode::SUBN_R { vx, vy } => {
+            Self::SUBN_R { vx, vy } => {
                 let (diff, borrow) = cpu.regs[vy].overflowing_sub(cpu.regs[vx]);
                 cpu.regs[vx] = diff;
                 cpu.regs[0xF] = (!borrow).into();
             }
-            Opcode::SHL { vx } => {
+            Self::SHL { vx } => {
                 cpu.regs[0xF] = cpu.regs[vx] >> 7;
                 cpu.regs[vx] <<= 1;
             }
-            Opcode::SNE_R { vx, vy } => {
+            Self::SNE_R { vx, vy } => {
                 if cpu.regs[vx] != cpu.regs[vy] {
                     cpu.push_pc();
                 }
             }
-            Opcode::LD_A { addr } => {
+            Self::LD_A { addr } => {
                 cpu.i_reg = addr;
             }
-            Opcode::JP_A { addr } => {
+            Self::JP_A { addr } => {
                 cpu.pc = u16::from(cpu.regs[0x0]) + addr;
             }
-            Opcode::RND { vx, byte } => {
+            Self::RND { vx, byte } => {
                 cpu.regs[vx] = random::<u8>() & byte;
             }
-            Opcode::DRW { vx: _, vy: _, n: _ } => {
+            Self::DRW { vx: _, vy: _, n: _ } => {
                 // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
             }
-            Opcode::SKP { vx } => {
+            Self::SKP { vx } => {
                 let key_states = KEYPAD.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx] as usize] == KeyState::Down {
                     cpu.push_pc();
                 }
             }
-            Opcode::SKNP { vx } => {
+            Self::SKNP { vx } => {
                 let key_states = KEYPAD.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx] as usize] == KeyState::Up {
                     cpu.push_pc();
                 }
             }
-            Opcode::LD_R_DT { vx } => {
+            Self::LD_R_DT { vx } => {
                 cpu.regs[vx] = cpu.delay_timer;
             }
-            Opcode::LD_R_K { vx } => {
+            Self::LD_R_K { vx } => {
                 cpu.regs[vx] = keypad::wait_for_key_press() as u8;
             }
-            Opcode::LD_DT_R { vx } => {
+            Self::LD_DT_R { vx } => {
                 cpu.delay_timer = cpu.regs[vx];
             }
-            Opcode::LD_DT_S { vx } => {
+            Self::LD_DT_S { vx } => {
                 cpu.sound_timer = cpu.regs[vx];
             }
-            Opcode::ADD_I { vx } => {
+            Self::ADD_I { vx } => {
                 cpu.i_reg = cpu.i_reg.wrapping_add(vx as u16);
             }
-            Opcode::LD_F { vx } => {
+            Self::LD_F { vx } => {
                 cpu.i_reg = vx as u16 * 5;
             }
-            Opcode::LD_B { vx } => {
+            Self::LD_B { vx } => {
                 let mut vx_val = cpu.regs[vx];
                 for i in (0..=2).rev() {
                     cpu.memory[cpu.i_reg as usize + i] = vx_val % 10;
                     vx_val /= 10;
                 }
             }
-            Opcode::LD_I_R { vx } => {
+            Self::LD_I_R { vx } => {
                 for vi in 0..=vx {
                     cpu.memory[cpu.i_reg as usize + vi] = cpu.regs[vi];
                 }
             }
-            Opcode::LD_R_I { vx } => {
+            Self::LD_R_I { vx } => {
                 for vi in 0..=vx {
                     cpu.regs[vi] = cpu.memory[cpu.i_reg as usize + vi];
                 }
