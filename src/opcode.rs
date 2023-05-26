@@ -305,8 +305,19 @@ impl Opcode {
             Self::RND { vx, byte } => {
                 cpu.regs[vx] = random::<u8>() & byte;
             }
-            Self::DRW { vx: _, vy: _, n: _ } => {
-                // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+            Self::DRW { vx, vy, n } => {
+                // TODO: Set VF for collision
+                for y in 0..n {
+                    let byte = cpu.memory[cpu.i_reg as usize + y as usize];
+                    for x in 0..8 {
+                        let bit = (byte >> (7 - x)) & 1;
+                        cpu.view.draw_pixel(
+                            (cpu.regs[vx] + x) as f64,
+                            (cpu.regs[vy] + y) as f64,
+                            bit == 1,
+                        );
+                    }
+                }
             }
             Self::SKP { vx } => {
                 let (keypad, _) = &*cpu.keypad_and_keydown;

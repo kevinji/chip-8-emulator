@@ -33,21 +33,7 @@ impl View {
             .map_err(|_| eyre!("Failed to scale ctx"))?;
 
         let view = Rc::new(Self { canvas, ctx });
-        let view_clone = Rc::clone(&view);
-        let step: Closure<dyn Fn()> = Closure::wrap(Box::new(move || view_clone.step()));
-
-        // See https://rustwasm.github.io/docs/wasm-bindgen/examples/request-animation-frame.html.
-        window
-            .request_animation_frame(step.as_ref().unchecked_ref())
-            .map_err(|_| eyre!("Failed to call requestAnimationFrame"))?;
-
-        step.forget();
-
         Ok(view)
-    }
-
-    fn step(&self) {
-        self.draw_pixel(10., 20., true);
     }
 
     pub fn draw_pixel(&self, x: f64, y: f64, is_filled: bool) {
