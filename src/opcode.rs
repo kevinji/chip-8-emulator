@@ -1,7 +1,4 @@
-use crate::{
-    cpu::Cpu,
-    keypad::{self, KeyState, KEYPAD},
-};
+use crate::{cpu::Cpu, keypad::KeyState};
 use rand::random;
 
 #[allow(non_camel_case_types)]
@@ -312,13 +309,15 @@ impl Opcode {
                 // Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
             }
             Self::SKP { vx } => {
-                let key_states = KEYPAD.lock().unwrap().key_states;
+                let (keypad, _) = &*cpu.keypad_and_keydown;
+                let key_states = keypad.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx] as usize] == KeyState::Down {
                     cpu.push_pc();
                 }
             }
             Self::SKNP { vx } => {
-                let key_states = KEYPAD.lock().unwrap().key_states;
+                let (keypad, _) = &*cpu.keypad_and_keydown;
+                let key_states = keypad.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx] as usize] == KeyState::Up {
                     cpu.push_pc();
                 }
@@ -327,7 +326,10 @@ impl Opcode {
                 cpu.regs[vx] = cpu.delay_timer;
             }
             Self::LD_R_K { vx } => {
-                cpu.regs[vx] = keypad::wait_for_key_press() as u8;
+                let (keypad, keydown) = &*cpu.keypad_and_keydown;
+                let keypad = keypad.lock().unwrap();
+                let last_keydown = keydown.wait(keypad).unwrap().last_keydown.unwrap();
+                cpu.regs[vx] = last_keydown as u8;
             }
             Self::LD_DT_R { vx } => {
                 cpu.delay_timer = cpu.regs[vx];

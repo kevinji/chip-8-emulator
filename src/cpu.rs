@@ -1,4 +1,5 @@
-use crate::{opcode::Opcode, view::View};
+use crate::{keypad::Keypad, opcode::Opcode, view::View};
+use std::sync::{Arc, Condvar, Mutex};
 
 pub struct Cpu<'a> {
     pub memory: [u8; 4096],
@@ -17,6 +18,7 @@ pub struct Cpu<'a> {
     pub sound_timer: u8,
 
     pub view: &'a View,
+    pub keypad_and_keydown: Arc<(Mutex<Keypad>, Condvar)>,
 }
 
 static FONTSET: [u8; 80] = [
@@ -40,7 +42,11 @@ static FONTSET: [u8; 80] = [
 
 impl<'a> Cpu<'a> {
     #[must_use]
-    pub fn new(rom_buf: &[u8], view: &'a View) -> Self {
+    pub fn new(
+        rom_buf: &[u8],
+        view: &'a View,
+        keypad_and_keydown: Arc<(Mutex<Keypad>, Condvar)>,
+    ) -> Self {
         let mut cpu = Self {
             memory: [0; 4096],
 
@@ -55,6 +61,7 @@ impl<'a> Cpu<'a> {
             sound_timer: 0,
 
             view,
+            keypad_and_keydown,
         };
 
         // Store font data before 0x200.

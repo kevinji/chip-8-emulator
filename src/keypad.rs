@@ -1,15 +1,24 @@
+use eyre::eyre;
 use lazy_static::lazy_static;
-use std::sync::{Condvar, Mutex};
+use std::collections::HashMap;
+use std::mem::forget;
+use std::sync::{Arc, Condvar, Mutex};
+use wasm_bindgen::{closure::Closure, JsCast};
+use web_sys::{window, KeyboardEvent};
 
-const KEY_COUNT: usize = 16;
-
-/*
-static KEY_CODES: &[&str] = &[
+const KEY_CODES: &[&str] = &[
     "KeyX", "Digit1", "Digit2", "Digit3", "KeyQ", // 0 - 4
     "KeyE", "KeyA", "KeyS", "KeyD", "KeyW", // 5 - 9
     "KeyZ", "KeyC", "Digit4", "KeyR", "KeyF", "KeyV", // A - F
 ];
-*/
+
+lazy_static! {
+    static ref KEY_CODE_INDICES: HashMap<String, usize> = KEY_CODES
+        .iter()
+        .enumerate()
+        .map(|(i, key)| ((*key).to_owned(), i))
+        .collect();
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KeyState {
@@ -25,7 +34,8 @@ impl Default for KeyState {
 
 #[derive(Clone, Debug, Default)]
 pub struct Keypad {
-    pub key_states: [KeyState; KEY_COUNT],
+    pub key_states: [KeyState; KEY_CODES.len()],
+    pub last_keydown: Option<usize>,
 }
 
 impl Keypad {
@@ -36,38 +46,53 @@ impl Keypad {
 
     pub fn update_key_state(&mut self, i: usize, state: KeyState) {
         self.key_states[i] = state;
+        if state == KeyState::Down {
+            self.last_keydown = Some(i);
+        }
     }
 }
 
-// Keep the Keypad public for wasm_bindgen.
-lazy_static! {
-    pub static ref KEYPAD: Mutex<Keypad> = Mutex::new(Keypad::new());
-    static ref WAIT: (Mutex<Option<usize>>, Condvar) = (Mutex::new(None), Condvar::new());
-}
+pub fn set_up_key_press_listeners(
+    keypad_and_keydown: &Arc<(Mutex<Keypad>, Condvar)>,
+) -> eyre::Result<()> {
+    let window = window().ok_or_else(|| eyre!("window does not exist"))?;
 
-#[must_use]
-pub fn wait_for_key_press() -> usize {
-    let &(ref lock, ref cvar) = &*WAIT;
-    let mut key = lock.lock().unwrap();
-    while (*key).is_none() {
-        key = cvar.wait(key).unwrap();
-    }
+    let on_keydown: Closure<dyn Fn(KeyboardEvent)> = Closure::new({
+        let keypad_and_keydown = Arc::clone(keypad_and_keydown);
+        move |event: KeyboardEvent| {
+            let code = event.code();
+            if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
+                let (keypad, keydown) = &*keypad_and_keydown;
+                keypad
+                    .lock()
+                    .unwrap()
+                    .update_key_state(key_index, KeyState::Down);
+                keydown.notify_all();
+            }
+        }
+    });
+    window
+        .add_event_listener_with_callback("keydown", on_keydown.as_ref().unchecked_ref())
+        .map_err(|_| eyre!("Failed to create keydown event listener"))?;
+    forget(on_keydown);
 
-    key.unwrap()
-}
+    let on_keyup: Closure<dyn Fn(KeyboardEvent)> = Closure::new({
+        let keypad_and_keydown = Arc::clone(keypad_and_keydown);
+        move |event: KeyboardEvent| {
+            let code = event.code();
+            if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
+                let (keypad, _) = &*keypad_and_keydown;
+                keypad
+                    .lock()
+                    .unwrap()
+                    .update_key_state(key_index, KeyState::Down);
+            }
+        }
+    });
+    window
+        .add_event_listener_with_callback("keyup", on_keyup.as_ref().unchecked_ref())
+        .map_err(|_| eyre!("Failed to create keyup event listener"))?;
+    forget(on_keyup);
 
-fn alert_key_press(i: usize) {
-    let &(ref lock, ref cvar) = &*WAIT;
-    let mut key = lock.lock().unwrap();
-    *key = Some(i);
-    cvar.notify_one();
-}
-
-#[allow(dead_code)]
-pub fn update_key_state(i: usize, state: KeyState) {
-    KEYPAD.lock().unwrap().update_key_state(i, state);
-
-    if state == KeyState::Down {
-        alert_key_press(i);
-    }
+    Ok(())
 }
