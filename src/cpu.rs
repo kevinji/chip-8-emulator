@@ -18,7 +18,7 @@ pub struct Cpu<'a> {
     pub sound_timer: u8,
 
     pub view: &'a View,
-    pub keypad_and_keydown: Arc<(Mutex<Keypad>, Condvar)>,
+    pub keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
 }
 
 static FONTSET: [u8; 80] = [
@@ -45,7 +45,7 @@ impl<'a> Cpu<'a> {
     pub fn new(
         rom_buf: &[u8],
         view: &'a View,
-        keypad_and_keydown: Arc<(Mutex<Keypad>, Condvar)>,
+        keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
     ) -> Self {
         let mut cpu = Self {
             memory: [0; 4096],
@@ -61,7 +61,7 @@ impl<'a> Cpu<'a> {
             sound_timer: 0,
 
             view,
-            keypad_and_keydown,
+            keypad_and_keypress,
         };
 
         // Store font data before 0x200.

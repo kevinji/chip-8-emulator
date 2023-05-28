@@ -1,7 +1,7 @@
+use core::mem;
 use eyre::eyre;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::mem::forget;
 use std::sync::{Arc, Condvar, Mutex};
 use wasm_bindgen::{closure::Closure, JsCast};
 use web_sys::{window, KeyboardEvent};
@@ -35,7 +35,7 @@ impl Default for KeyState {
 #[derive(Clone, Debug, Default)]
 pub struct Keypad {
     pub key_states: [KeyState; KEY_CODES.len()],
-    pub last_keydown: Option<usize>,
+    pub last_keypress: Option<usize>,
 }
 
 impl Keypad {
@@ -44,55 +44,48 @@ impl Keypad {
         Self::default()
     }
 
-    pub fn update_key_state(&mut self, i: usize, state: KeyState) {
-        self.key_states[i] = state;
-        if state == KeyState::Down {
-            self.last_keydown = Some(i);
+    pub fn update_key_state(&mut self, keypress: &Condvar, i: usize, state: KeyState) {
+        let prev_state = mem::replace(&mut self.key_states[i], state);
+        if prev_state == KeyState::Up && state == KeyState::Down {
+            self.last_keypress = Some(i);
+            keypress.notify_all();
+        }
+    }
+}
+
+fn on_keypress(
+    keystate: KeyState,
+    keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>,
+) -> impl Fn(KeyboardEvent) {
+    let keypad_and_keypress = Arc::clone(keypad_and_keypress);
+    move |event: KeyboardEvent| {
+        let code = event.code();
+        if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
+            let (keypad, keypress) = &*keypad_and_keypress;
+            keypad
+                .lock()
+                .unwrap()
+                .update_key_state(keypress, key_index, keystate);
         }
     }
 }
 
 pub fn set_up_key_press_listeners(
-    keypad_and_keydown: &Arc<(Mutex<Keypad>, Condvar)>,
+    keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>,
 ) -> eyre::Result<()> {
     let window = window().ok_or_else(|| eyre!("window does not exist"))?;
 
-    let on_keydown: Closure<dyn Fn(KeyboardEvent)> = Closure::new({
-        let keypad_and_keydown = Arc::clone(keypad_and_keydown);
-        move |event: KeyboardEvent| {
-            let code = event.code();
-            if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
-                let (keypad, keydown) = &*keypad_and_keydown;
-                keypad
-                    .lock()
-                    .unwrap()
-                    .update_key_state(key_index, KeyState::Down);
-                keydown.notify_all();
-            }
-        }
-    });
+    let on_keydown = <Closure<dyn Fn(_)>>::new(on_keypress(KeyState::Down, keypad_and_keypress));
     window
         .add_event_listener_with_callback("keydown", on_keydown.as_ref().unchecked_ref())
         .map_err(|_| eyre!("Failed to create keydown event listener"))?;
-    forget(on_keydown);
+    mem::forget(on_keydown);
 
-    let on_keyup: Closure<dyn Fn(KeyboardEvent)> = Closure::new({
-        let keypad_and_keydown = Arc::clone(keypad_and_keydown);
-        move |event: KeyboardEvent| {
-            let code = event.code();
-            if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
-                let (keypad, _) = &*keypad_and_keydown;
-                keypad
-                    .lock()
-                    .unwrap()
-                    .update_key_state(key_index, KeyState::Down);
-            }
-        }
-    });
+    let on_keyup = <Closure<dyn Fn(_)>>::new(on_keypress(KeyState::Up, keypad_and_keypress));
     window
         .add_event_listener_with_callback("keyup", on_keyup.as_ref().unchecked_ref())
         .map_err(|_| eyre!("Failed to create keyup event listener"))?;
-    forget(on_keyup);
+    mem::forget(on_keyup);
 
     Ok(())
 }

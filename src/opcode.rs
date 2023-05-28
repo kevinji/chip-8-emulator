@@ -320,14 +320,14 @@ impl Opcode {
                 }
             }
             Self::SKP { vx } => {
-                let (keypad, _) = &*cpu.keypad_and_keydown;
+                let (keypad, _) = &*cpu.keypad_and_keypress;
                 let key_states = keypad.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx] as usize] == KeyState::Down {
                     cpu.push_pc();
                 }
             }
             Self::SKNP { vx } => {
-                let (keypad, _) = &*cpu.keypad_and_keydown;
+                let (keypad, _) = &*cpu.keypad_and_keypress;
                 let key_states = keypad.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx] as usize] == KeyState::Up {
                     cpu.push_pc();
@@ -337,10 +337,10 @@ impl Opcode {
                 cpu.regs[vx] = cpu.delay_timer;
             }
             Self::LD_R_K { vx } => {
-                let (keypad, keydown) = &*cpu.keypad_and_keydown;
+                let (keypad, keypress) = &*cpu.keypad_and_keypress;
                 let keypad = keypad.lock().unwrap();
-                let last_keydown = keydown.wait(keypad).unwrap().last_keydown.unwrap();
-                cpu.regs[vx] = last_keydown as u8;
+                let last_keypress = keypress.wait(keypad).unwrap().last_keypress.unwrap();
+                cpu.regs[vx] = last_keypress as u8;
             }
             Self::LD_DT_R { vx } => {
                 cpu.delay_timer = cpu.regs[vx];
