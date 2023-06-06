@@ -221,7 +221,7 @@ impl Opcode {
         match *self {
             Self::SYS => (),
             Self::CLS => {
-                cpu.view.clear().unwrap();
+                cpu.view.clear();
             }
             Self::RET => {
                 cpu.sp -= 1;

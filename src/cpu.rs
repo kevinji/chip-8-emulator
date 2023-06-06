@@ -1,7 +1,7 @@
 use crate::{keypad::Keypad, opcode::Opcode, view::View};
 use std::sync::{Arc, Condvar, Mutex};
 
-pub struct Cpu<'a> {
+pub struct Cpu {
     pub memory: [u8; 4096],
 
     pub regs: [u8; 16],
@@ -17,7 +17,7 @@ pub struct Cpu<'a> {
     pub delay_timer: u8,
     pub sound_timer: u8,
 
-    pub view: &'a View,
+    pub view: View,
     pub keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
 }
 
@@ -40,11 +40,11 @@ static FONTSET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
-impl<'a> Cpu<'a> {
+impl Cpu {
     #[must_use]
     pub fn new(
         rom_buf: &[u8],
-        view: &'a View,
+        view: View,
         keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
     ) -> Self {
         let mut cpu = Self {

@@ -15,10 +15,10 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-eyre = "0.6"
 getrandom = { version = "0.2", features = ["js"] }
 gloo-console = "0.2"
 gloo-events = "0.1"
+gloo-render = "0.1"
 gloo-utils = "0.1"
 js-sys = "0.3"
 lazy_static = "1.4"

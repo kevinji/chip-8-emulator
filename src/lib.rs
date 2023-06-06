@@ -6,28 +6,21 @@ pub mod view;
 use crate::{
     cpu::Cpu,
     keypad::{KeyPressListeners, Keypad},
-    view::View,
+    view::{set_up_render_loop, View},
 };
 use gloo_console::log;
 use std::sync::{Arc, Condvar, Mutex};
 use wasm_bindgen::prelude::*;
 
-/// # Errors
-/// Any program errors are returned as a top-level WASM error.
 #[wasm_bindgen(start)]
-pub fn entry() -> Result<(), JsValue> {
-    main().map_err(|err| err.to_string())?;
-    Ok(())
-}
-
-fn main() -> eyre::Result<()> {
+pub fn entry() {
     log!("Starting up emulator...");
 
     // TODO: Enable loading the other roms.
     let rom_buf = include_bytes!("../roms/PONG.rom");
 
     log!("Finished reading ROMs");
-    let view = View::new()?;
+    let view = View::new();
     let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
 
     let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress);
@@ -36,7 +29,11 @@ fn main() -> eyre::Result<()> {
     key_press_listeners.on_keydown.forget();
     key_press_listeners.on_keyup.forget();
 
-    let mut cpu = Cpu::new(rom_buf, &view, Arc::clone(&keypad_and_keypress));
-    cpu.cycle();
-    Ok(())
+    let mut cpu = Cpu::new(rom_buf, view, Arc::clone(&keypad_and_keypress));
+    log!("Created CPU");
+
+    set_up_render_loop(move || {
+        cpu.cycle();
+    });
+    log!("Set up render loop");
 }
