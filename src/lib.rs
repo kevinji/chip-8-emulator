@@ -5,9 +5,10 @@ pub mod view;
 
 use crate::{
     cpu::Cpu,
-    keypad::{set_up_key_press_listeners, Keypad},
+    keypad::{KeyPressListeners, Keypad},
     view::View,
 };
+use core::mem;
 use std::sync::{Arc, Condvar, Mutex};
 use wasm_bindgen::prelude::*;
 use web_sys::console;
@@ -29,7 +30,11 @@ fn main() -> eyre::Result<()> {
     console::log_1(&"Finished reading ROMs".into());
     let view = View::new()?;
     let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
-    set_up_key_press_listeners(&keypad_and_keypress)?;
+
+    let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress)?;
+    // TODO: Handle removing listeners instead of leaking
+    mem::forget(key_press_listeners);
+
     let mut cpu = Cpu::new(rom_buf, &view, Arc::clone(&keypad_and_keypress));
     cpu.cycle();
     Ok(())

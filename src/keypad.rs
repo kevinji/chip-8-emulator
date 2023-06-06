@@ -70,22 +70,28 @@ fn on_keypress(
     }
 }
 
-pub fn set_up_key_press_listeners(
-    keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>,
-) -> eyre::Result<()> {
-    let window = window().ok_or_else(|| eyre!("window does not exist"))?;
+pub struct KeyPressListeners {
+    _on_keydown: Closure<dyn Fn(KeyboardEvent)>,
+    _on_keyup: Closure<dyn Fn(KeyboardEvent)>,
+}
 
-    let on_keydown = <Closure<dyn Fn(_)>>::new(on_keypress(KeyState::Down, keypad_and_keypress));
-    window
-        .add_event_listener_with_callback("keydown", on_keydown.as_ref().unchecked_ref())
-        .map_err(|_| eyre!("Failed to create keydown event listener"))?;
-    mem::forget(on_keydown);
+impl KeyPressListeners {
+    pub fn new(keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>) -> eyre::Result<Self> {
+        let window = window().ok_or_else(|| eyre!("window does not exist"))?;
 
-    let on_keyup = <Closure<dyn Fn(_)>>::new(on_keypress(KeyState::Up, keypad_and_keypress));
-    window
-        .add_event_listener_with_callback("keyup", on_keyup.as_ref().unchecked_ref())
-        .map_err(|_| eyre!("Failed to create keyup event listener"))?;
-    mem::forget(on_keyup);
+        let on_keydown = Closure::new(on_keypress(KeyState::Down, keypad_and_keypress));
+        window
+            .add_event_listener_with_callback("keydown", on_keydown.as_ref().unchecked_ref())
+            .map_err(|_| eyre!("Failed to create keydown event listener"))?;
 
-    Ok(())
+        let on_keyup = Closure::new(on_keypress(KeyState::Up, keypad_and_keypress));
+        window
+            .add_event_listener_with_callback("keyup", on_keyup.as_ref().unchecked_ref())
+            .map_err(|_| eyre!("Failed to create keyup event listener"))?;
+
+        Ok(Self {
+            _on_keydown: on_keydown,
+            _on_keyup: on_keyup,
+        })
+    }
 }
