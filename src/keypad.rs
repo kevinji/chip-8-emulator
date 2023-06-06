@@ -1,11 +1,11 @@
 use core::mem;
-use eyre::eyre;
 use gloo_events::EventListener;
+use gloo_utils::window;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::sync::{Arc, Condvar, Mutex};
 use wasm_bindgen::JsCast;
-use web_sys::{window, Event, KeyboardEvent};
+use web_sys::{Event, KeyboardEvent};
 
 const KEY_CODES: &[&str] = &[
     "KeyX", "Digit1", "Digit2", "Digit3", "KeyQ", // 0 - 4
@@ -73,13 +73,13 @@ fn on_keypress(
 }
 
 pub struct KeyPressListeners {
-    _on_keydown: EventListener,
-    _on_keyup: EventListener,
+    pub on_keydown: EventListener,
+    pub on_keyup: EventListener,
 }
 
 impl KeyPressListeners {
-    pub fn new(keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>) -> eyre::Result<Self> {
-        let window = window().ok_or_else(|| eyre!("window does not exist"))?;
+    pub fn new(keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>) -> Self {
+        let window = window();
 
         let on_keydown = EventListener::new(
             &window,
@@ -93,9 +93,9 @@ impl KeyPressListeners {
             on_keypress(KeyState::Up, keypad_and_keypress),
         );
 
-        Ok(Self {
-            _on_keydown: on_keydown,
-            _on_keyup: on_keyup,
-        })
+        Self {
+            on_keydown,
+            on_keyup,
+        }
     }
 }

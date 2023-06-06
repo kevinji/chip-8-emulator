@@ -1,7 +1,8 @@
 use eyre::eyre;
+use gloo_utils::document;
 use std::rc::Rc;
 use wasm_bindgen::{prelude::*, JsCast};
-use web_sys::{window, CanvasRenderingContext2d, HtmlCanvasElement};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 #[derive(Clone, Debug)]
 pub struct View {
@@ -13,11 +14,7 @@ impl View {
     const SCALE: f64 = 10.;
 
     pub fn new() -> eyre::Result<Rc<Self>> {
-        let window = window().ok_or_else(|| eyre!("window does not exist"))?;
-        let document = window
-            .document()
-            .ok_or_else(|| eyre!("document does not exist"))?;
-        let canvas = document
+        let canvas = document()
             .get_element_by_id("view")
             .ok_or_else(|| eyre!("#view does not exist"))?
             .dyn_into::<HtmlCanvasElement>()

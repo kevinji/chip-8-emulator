@@ -8,7 +8,6 @@ use crate::{
     keypad::{KeyPressListeners, Keypad},
     view::View,
 };
-use core::mem;
 use gloo_console::log;
 use std::sync::{Arc, Condvar, Mutex};
 use wasm_bindgen::prelude::*;
@@ -31,9 +30,11 @@ fn main() -> eyre::Result<()> {
     let view = View::new()?;
     let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
 
-    let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress)?;
+    let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress);
+
     // TODO: Handle removing listeners instead of leaking
-    mem::forget(key_press_listeners);
+    key_press_listeners.on_keydown.forget();
+    key_press_listeners.on_keyup.forget();
 
     let mut cpu = Cpu::new(rom_buf, &view, Arc::clone(&keypad_and_keypress));
     cpu.cycle();
