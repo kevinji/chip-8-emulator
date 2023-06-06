@@ -95,8 +95,7 @@ impl<'a> Cpu<'a> {
         assert!(self.pc < 4095, "pc is outside memory bounds!");
 
         // Opcode is 2 bytes, big-endian.
-        u16::from(self.memory[self.pc as usize]) << 8
-            | u16::from(self.memory[(self.pc + 1) as usize])
+        (self.memory[self.pc as usize] as u16) << 8 | (self.memory[(self.pc + 1) as usize] as u16)
     }
 
     fn decode_and_execute_opcode(&mut self, opcode: u16) {
