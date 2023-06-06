@@ -1,10 +1,11 @@
 use core::mem;
 use eyre::eyre;
+use gloo_events::EventListener;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::sync::{Arc, Condvar, Mutex};
-use wasm_bindgen::{closure::Closure, JsCast};
-use web_sys::{window, KeyboardEvent};
+use wasm_bindgen::JsCast;
+use web_sys::{window, Event, KeyboardEvent};
 
 const KEY_CODES: &[&str] = &[
     "KeyX", "Digit1", "Digit2", "Digit3", "KeyQ", // 0 - 4
@@ -56,9 +57,10 @@ impl Keypad {
 fn on_keypress(
     keystate: KeyState,
     keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>,
-) -> impl Fn(KeyboardEvent) {
+) -> impl Fn(&Event) {
     let keypad_and_keypress = Arc::clone(keypad_and_keypress);
-    move |event: KeyboardEvent| {
+    move |event: &Event| {
+        let event = event.dyn_ref::<KeyboardEvent>().unwrap();
         let code = event.code();
         if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
             let (keypad, keypress) = &*keypad_and_keypress;
@@ -71,23 +73,25 @@ fn on_keypress(
 }
 
 pub struct KeyPressListeners {
-    _on_keydown: Closure<dyn Fn(KeyboardEvent)>,
-    _on_keyup: Closure<dyn Fn(KeyboardEvent)>,
+    _on_keydown: EventListener,
+    _on_keyup: EventListener,
 }
 
 impl KeyPressListeners {
     pub fn new(keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>) -> eyre::Result<Self> {
         let window = window().ok_or_else(|| eyre!("window does not exist"))?;
 
-        let on_keydown = Closure::new(on_keypress(KeyState::Down, keypad_and_keypress));
-        window
-            .add_event_listener_with_callback("keydown", on_keydown.as_ref().unchecked_ref())
-            .map_err(|_| eyre!("Failed to create keydown event listener"))?;
+        let on_keydown = EventListener::new(
+            &window,
+            "keydown",
+            on_keypress(KeyState::Down, keypad_and_keypress),
+        );
 
-        let on_keyup = Closure::new(on_keypress(KeyState::Up, keypad_and_keypress));
-        window
-            .add_event_listener_with_callback("keyup", on_keyup.as_ref().unchecked_ref())
-            .map_err(|_| eyre!("Failed to create keyup event listener"))?;
+        let on_keyup = EventListener::new(
+            &window,
+            "keyup",
+            on_keypress(KeyState::Up, keypad_and_keypress),
+        );
 
         Ok(Self {
             _on_keydown: on_keydown,

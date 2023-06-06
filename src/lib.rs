@@ -9,9 +9,9 @@ use crate::{
     view::View,
 };
 use core::mem;
+use gloo_console::log;
 use std::sync::{Arc, Condvar, Mutex};
 use wasm_bindgen::prelude::*;
-use web_sys::console;
 
 /// # Errors
 /// Any program errors are returned as a top-level WASM error.
@@ -22,12 +22,12 @@ pub fn entry() -> Result<(), JsValue> {
 }
 
 fn main() -> eyre::Result<()> {
-    console::log_1(&"Starting up emulator...".into());
+    log!("Starting up emulator...");
 
     // TODO: Enable loading the other roms.
     let rom_buf = include_bytes!("../roms/PONG.rom");
 
-    console::log_1(&"Finished reading ROMs".into());
+    log!("Finished reading ROMs");
     let view = View::new()?;
     let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
 
