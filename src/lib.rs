@@ -33,7 +33,9 @@ pub fn entry() {
     log!("Created CPU");
 
     set_up_render_loop(move || {
-        cpu.cycle();
+        for _ in 0..8 {
+            cpu.cycle();
+        }
     });
     log!("Set up render loop");
 }
