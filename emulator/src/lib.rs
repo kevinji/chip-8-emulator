@@ -17,7 +17,7 @@ pub fn entry() {
     log!("Starting up emulator...");
 
     // TODO: Enable loading the other roms.
-    let rom_buf = include_bytes!("../roms/PONG.rom");
+    let rom_buf = include_bytes!("../../roms/PONG.rom");
 
     log!("Finished reading ROMs");
     let view = View::new();

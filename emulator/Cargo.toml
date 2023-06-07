@@ -1,0 +1,23 @@
+[package]
+name = "chip-8-emulator"
+description = "A CHIP-8 emulator that renders to WebAssembly."
+version = { workspace = true }
+repository = { workspace = true }
+authors = { workspace = true }
+license = { workspace = true }
+edition = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+getrandom = { workspace = true }
+gloo-console = { workspace = true }
+gloo-events = { workspace = true }
+gloo-render = { workspace = true }
+gloo-utils = { workspace = true }
+js-sys = { workspace = true }
+lazy_static = { workspace = true }
+rand = { workspace = true }
+wasm-bindgen = { workspace = true }
+web-sys = { workspace = true }

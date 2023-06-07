@@ -1,18 +1,18 @@
-[package]
-name = "chip-8-emulator"
+[workspace]
+resolver = "2"
+members = [
+    "emulator",
+    "server",
+]
+
+[workspace.package]
 version = "0.1.0"
-edition = "2021"
-license = "MIT"
-authors = ["Kevin Ji"]
 repository = "https://github.com/kevinji/chip-8-emulator"
-description = """
-A CHIP-8 emulator written with Rust.
-"""
+authors = ["Kevin Ji"]
+license = "MIT"
+edition = "2021"
 
-[lib]
-crate-type = ["cdylib"]
-
-[dependencies]
+[workspace.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
 gloo-console = "0.2"
 gloo-events = "0.1"
@@ -23,7 +23,7 @@ lazy_static = "1.4"
 rand = "0.8"
 wasm-bindgen = "0.2"
 
-[dependencies.web-sys]
+[workspace.dependencies.web-sys]
 version = "0.3"
 features = [
   'CanvasRenderingContext2d',
