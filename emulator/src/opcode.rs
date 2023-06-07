@@ -317,18 +317,17 @@ impl Opcode {
                         let bit = (byte >> (7 - ix)) & 1;
                         let is_filled = bit == 1;
 
-                        let x = cpu.regs[vx as usize] + ix;
-                        let y = cpu.regs[vy as usize] + iy;
+                        let x = (cpu.regs[vx as usize] + ix) % (WIDTH as u8);
+                        let y = (cpu.regs[vy as usize] + iy) % (HEIGHT as u8);
 
-                        if x >= WIDTH as u8 || y >= HEIGHT as u8 {
-                            continue;
-                        }
+                        let curr_is_filled = cpu.view.is_pixel_filled(x, y);
+                        let new_is_filled = curr_is_filled ^ is_filled;
 
-                        if cpu.view.is_pixel_filled(x, y) && !is_filled {
+                        if curr_is_filled && !new_is_filled {
                             collision = true;
                         }
 
-                        cpu.view.draw_pixel(x, y, is_filled);
+                        cpu.view.draw_pixel(x, y, new_is_filled);
                     }
                 }
 
