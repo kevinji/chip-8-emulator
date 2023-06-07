@@ -33,14 +33,14 @@ impl View {
         Self { canvas, ctx }
     }
 
-    pub fn draw_pixel(&self, x: f64, y: f64, is_filled: bool) {
+    pub fn draw_pixel(&self, x: u8, y: u8, is_filled: bool) {
         let fill_color = if is_filled {
             "rgb(0, 0, 0)"
         } else {
             "rgb(255, 255, 255)"
         };
         self.ctx.set_fill_style(&JsValue::from_str(fill_color));
-        self.ctx.fill_rect(x, y, 1., 1.);
+        self.ctx.fill_rect(x.into(), y.into(), 1., 1.);
     }
 
     pub fn clear(&self) {

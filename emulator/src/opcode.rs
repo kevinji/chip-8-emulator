@@ -311,11 +311,8 @@ impl Opcode {
                     let byte = cpu.memory[cpu.i_reg as usize + y as usize];
                     for x in 0..8 {
                         let bit = (byte >> (7 - x)) & 1;
-                        cpu.view.draw_pixel(
-                            (cpu.regs[vx] + x) as f64,
-                            (cpu.regs[vy] + y) as f64,
-                            bit == 1,
-                        );
+                        cpu.view
+                            .draw_pixel(cpu.regs[vx] + x, cpu.regs[vy] + y, bit == 1);
                     }
                 }
             }
