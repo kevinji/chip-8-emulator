@@ -1,4 +1,8 @@
-use crate::{cpu::Cpu, keypad::KeyState};
+use crate::{
+    cpu::Cpu,
+    keypad::KeyState,
+    view::{HEIGHT, WIDTH},
+};
 use rand::random;
 
 #[allow(non_camel_case_types)]
@@ -306,18 +310,29 @@ impl Opcode {
                 cpu.regs[vx as usize] = random::<u8>() & byte;
             }
             Self::DRW { vx, vy, n } => {
-                // TODO: Set VF for collision
-                for y in 0..n {
-                    let byte = cpu.memory[cpu.i_reg as usize + y as usize];
-                    for x in 0..8 {
-                        let bit = (byte >> (7 - x)) & 1;
-                        cpu.view.draw_pixel(
-                            cpu.regs[vx as usize] + x,
-                            cpu.regs[vy as usize] + y,
-                            bit == 1,
-                        );
+                let mut collision = false;
+                for iy in 0..n {
+                    let byte = cpu.memory[(cpu.i_reg + iy as u16) as usize];
+                    for ix in 0..8 {
+                        let bit = (byte >> (7 - ix)) & 1;
+                        let is_filled = bit == 1;
+
+                        let x = cpu.regs[vx as usize] + ix;
+                        let y = cpu.regs[vy as usize] + iy;
+
+                        if x >= WIDTH as u8 || y >= HEIGHT as u8 {
+                            continue;
+                        }
+
+                        if cpu.view.is_pixel_filled(x, y) && !is_filled {
+                            collision = true;
+                        }
+
+                        cpu.view.draw_pixel(x, y, is_filled);
                     }
                 }
+
+                cpu.regs[0xF] = collision.into();
             }
             Self::SKP { vx } => {
                 let (keypad, _) = &*cpu.keypad_and_keypress;

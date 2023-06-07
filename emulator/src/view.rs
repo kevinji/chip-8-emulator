@@ -5,11 +5,14 @@ use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 const SIXTY_FPS_FRAME_MS: f64 = 1000. / 60.;
+pub const WIDTH: usize = 64;
+pub const HEIGHT: usize = 32;
 
 #[derive(Clone, Debug)]
 pub struct View {
     canvas: HtmlCanvasElement,
     ctx: CanvasRenderingContext2d,
+    filled_pixels: [[bool; HEIGHT]; WIDTH],
 }
 
 impl View {
@@ -30,10 +33,22 @@ impl View {
 
         ctx.scale(Self::SCALE, Self::SCALE).unwrap_throw();
 
-        Self { canvas, ctx }
+        let filled_pixels = [[false; HEIGHT]; WIDTH];
+
+        Self {
+            canvas,
+            ctx,
+            filled_pixels,
+        }
     }
 
-    pub fn draw_pixel(&self, x: u8, y: u8, is_filled: bool) {
+    pub fn is_pixel_filled(&self, x: u8, y: u8) -> bool {
+        self.filled_pixels[x as usize][y as usize]
+    }
+
+    pub fn draw_pixel(&mut self, x: u8, y: u8, is_filled: bool) {
+        self.filled_pixels[x as usize][y as usize] = is_filled;
+
         let fill_color = if is_filled {
             "rgb(0, 0, 0)"
         } else {
@@ -43,7 +58,9 @@ impl View {
         self.ctx.fill_rect(x.into(), y.into(), 1., 1.);
     }
 
-    pub fn clear(&self) {
+    pub fn clear(&mut self) {
+        self.filled_pixels = [[false; HEIGHT]; WIDTH];
+
         // Save transformation matrix.
         self.ctx.save();
 
