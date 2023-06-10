@@ -67,7 +67,7 @@ pub enum Opcode {
     /// Fx15 - Set delay timer = Vx.
     LD_DT_R { vx: u8 },
     /// Fx18 - Set sound timer = Vx.
-    LD_DT_S { vx: u8 },
+    LD_ST_R { vx: u8 },
     /// Fx1E - Set I = I + Vx.
     ADD_I { vx: u8 },
     /// Fx29 - Set I = location of sprite for digit Vx.
@@ -167,7 +167,7 @@ impl From<u16> for Opcode {
                 (0x0, 0x7) => Self::LD_R_DT { vx: vx(opcode) },
                 (0x0, 0xA) => Self::LD_R_K { vx: vx(opcode) },
                 (0x1, 0x5) => Self::LD_DT_R { vx: vx(opcode) },
-                (0x1, 0x8) => Self::LD_DT_S { vx: vx(opcode) },
+                (0x1, 0x8) => Self::LD_ST_R { vx: vx(opcode) },
                 (0x1, 0xE) => Self::ADD_I { vx: vx(opcode) },
                 (0x2, 0x9) => Self::LD_F { vx: vx(opcode) },
                 (0x3, 0x3) => Self::LD_B { vx: vx(opcode) },
@@ -283,7 +283,7 @@ impl Opcode {
                 cpu.regs[0xF] = (!borrow).into();
             }
             Self::SHR { vx } => {
-                cpu.regs[0xF] = cpu.regs[vx as usize] & 0x1;
+                cpu.regs[0xF] = cpu.regs[vx as usize] & 1;
                 cpu.regs[vx as usize] >>= 1;
             }
             Self::SUBN_R { vx, vy } => {
@@ -304,7 +304,7 @@ impl Opcode {
                 cpu.i_reg = addr;
             }
             Self::JP_A { addr } => {
-                cpu.pc = u16::from(cpu.regs[0x0]) + addr;
+                cpu.pc = (cpu.regs[0x0] as u16).wrapping_add(addr);
             }
             Self::RND { vx, byte } => {
                 cpu.regs[vx as usize] = random::<u8>() & byte;
@@ -314,14 +314,13 @@ impl Opcode {
                 for iy in 0..n {
                     let byte = cpu.memory[(cpu.i_reg + iy as u16) as usize];
                     for ix in 0..8 {
-                        let bit = (byte >> (7 - ix)) & 1;
-                        let is_filled = bit == 1;
-
                         let x = (cpu.regs[vx as usize] + ix) % (WIDTH as u8);
                         let y = (cpu.regs[vy as usize] + iy) % (HEIGHT as u8);
 
                         let curr_is_filled = cpu.view.is_pixel_filled(x, y);
-                        let new_is_filled = curr_is_filled ^ is_filled;
+                        let mem_is_filled = (byte >> (7 - ix)) & 1 == 1;
+
+                        let new_is_filled = curr_is_filled ^ mem_is_filled;
 
                         if curr_is_filled && !new_is_filled {
                             collision = true;
@@ -353,17 +352,21 @@ impl Opcode {
             Self::LD_R_K { vx } => {
                 let (keypad, keypress) = &*cpu.keypad_and_keypress;
                 let keypad = keypad.lock().unwrap();
-                let last_keypress = keypress.wait(keypad).unwrap().last_keypress.unwrap();
+                let last_keypress = keypress
+                    .wait(keypad)
+                    .unwrap()
+                    .last_keypress
+                    .expect("Last keypress should exist if keypress has been awaited");
                 cpu.regs[vx as usize] = last_keypress as u8;
             }
             Self::LD_DT_R { vx } => {
                 cpu.delay_timer = cpu.regs[vx as usize];
             }
-            Self::LD_DT_S { vx } => {
+            Self::LD_ST_R { vx } => {
                 cpu.sound_timer = cpu.regs[vx as usize];
             }
             Self::ADD_I { vx } => {
-                cpu.i_reg = cpu.i_reg.wrapping_add(vx as u16);
+                cpu.i_reg = cpu.i_reg.wrapping_add(cpu.regs[vx as usize] as u16);
             }
             Self::LD_F { vx } => {
                 cpu.i_reg = vx as u16 * 5;
@@ -377,12 +380,12 @@ impl Opcode {
             }
             Self::LD_I_R { vx } => {
                 for vi in 0..=vx {
-                    cpu.memory[(cpu.i_reg + vi as u16) as usize] = cpu.regs[vi as usize];
+                    cpu.memory[cpu.i_reg as usize + vi as usize] = cpu.regs[vi as usize];
                 }
             }
             Self::LD_R_I { vx } => {
                 for vi in 0..=vx {
-                    cpu.regs[vi as usize] = cpu.memory[(cpu.i_reg + vi as u16) as usize];
+                    cpu.regs[vi as usize] = cpu.memory[cpu.i_reg as usize + vi as usize];
                 }
             }
         }
