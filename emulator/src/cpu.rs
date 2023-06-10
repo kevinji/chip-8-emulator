@@ -1,16 +1,21 @@
 use crate::{keypad::Keypad, opcode::Opcode, view::View};
 use std::sync::{Arc, Condvar, Mutex};
 
-pub struct Cpu {
-    pub memory: [u8; 4096],
+const TOTAL_MEMORY_BYTES: usize = 4096;
+const REGISTER_COUNT: usize = 16;
+const STACK_SIZE: usize = 16;
+const PROGRAM_START_ADDRESS: u16 = 0x200;
 
-    pub regs: [u8; 16],
+pub struct Cpu {
+    pub memory: [u8; TOTAL_MEMORY_BYTES],
+
+    pub regs: [u8; REGISTER_COUNT],
     /// Index register
     pub i_reg: u16,
     /// Program counter
     pub pc: u16,
 
-    pub stack: [u16; 16],
+    pub stack: [u16; STACK_SIZE],
     /// Stack pointer
     pub sp: u8,
 
@@ -48,13 +53,13 @@ impl Cpu {
         keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
     ) -> Self {
         let mut cpu = Self {
-            memory: [0; 4096],
+            memory: [0; TOTAL_MEMORY_BYTES],
 
-            regs: [0; 16],
+            regs: [0; REGISTER_COUNT],
             i_reg: 0,
-            pc: 0x200,
+            pc: PROGRAM_START_ADDRESS,
 
-            stack: [0; 16],
+            stack: [0; STACK_SIZE],
             sp: 0,
 
             delay_timer: 0,
@@ -64,7 +69,7 @@ impl Cpu {
             keypad_and_keypress,
         };
 
-        // Store font data before 0x200.
+        // Store font data before `PROGRAM_START_ADDRESS`.
         cpu.memory[..FONTSET.len()].copy_from_slice(&FONTSET);
 
         // Load the chosen ROM into memory.
@@ -77,12 +82,13 @@ impl Cpu {
     /// Panics if the program does not fit into memory.
     pub fn load_rom(&mut self, program: &[u8]) {
         assert!(
-            self.memory.len() >= 0x200 + program.len(),
-            "Program does not fit in memory."
+            self.memory.len() >= PROGRAM_START_ADDRESS as usize + program.len(),
+            "Program does not fit in memory.",
         );
 
-        // Fill memory from 0x200.
-        self.memory[0x200..0x200 + program.len()].copy_from_slice(program);
+        // Fill memory from `PROGRAM_START_ADDRESS`.
+        self.memory[PROGRAM_START_ADDRESS as usize..PROGRAM_START_ADDRESS as usize + program.len()]
+            .copy_from_slice(program);
     }
 
     pub fn cycle(&mut self) {
@@ -92,7 +98,10 @@ impl Cpu {
     }
 
     fn fetch_opcode(&self) -> u16 {
-        assert!(self.pc < 4095, "pc is outside memory bounds!");
+        assert!(
+            (self.pc as usize) < TOTAL_MEMORY_BYTES - 1,
+            "pc is outside memory bounds!",
+        );
 
         // Opcode is 2 bytes, big-endian.
         (self.memory[self.pc as usize] as u16) << 8 | (self.memory[(self.pc + 1) as usize] as u16)

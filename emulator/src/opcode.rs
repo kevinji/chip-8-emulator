@@ -197,7 +197,7 @@ fn vx(opcode: u16) -> u8 {
 
 #[inline]
 fn op2(opcode: u16) -> u8 {
-    (opcode >> 4 & 0xF) as u8
+    ((opcode >> 4) & 0xF) as u8
 }
 
 #[inline]

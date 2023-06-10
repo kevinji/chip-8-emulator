@@ -18,6 +18,7 @@ pub struct View {
 impl View {
     const SCALE: f64 = 10.;
 
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let canvas = document()
             .get_element_by_id("view")
