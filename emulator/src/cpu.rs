@@ -26,7 +26,7 @@ pub struct Cpu {
     pub keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
 }
 
-static FONTSET: [u8; 80] = [
+const FONTSET: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1
     0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -44,6 +44,8 @@ static FONTSET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
+
+const _: () = assert!(FONTSET.len() <= PROGRAM_START_ADDRESS as usize);
 
 impl Cpu {
     #[must_use]
