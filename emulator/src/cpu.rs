@@ -94,6 +94,8 @@ impl Cpu {
     pub fn cycle(&mut self) {
         let opcode = self.fetch_opcode();
         self.decode_and_execute_opcode(opcode);
+
+        // TODO: Ensure this runs at 60Hz
         self.update_timers();
     }
 
