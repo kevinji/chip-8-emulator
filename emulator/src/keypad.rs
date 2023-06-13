@@ -72,6 +72,7 @@ fn on_keypress(
     }
 }
 
+#[derive(Debug)]
 pub struct KeyPressListeners {
     pub on_keydown: EventListener,
     pub on_keyup: EventListener,

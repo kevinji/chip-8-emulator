@@ -6,6 +6,7 @@ const REGISTER_COUNT: usize = 16;
 const STACK_SIZE: usize = 16;
 const PROGRAM_START_ADDRESS: u16 = 0x200;
 
+#[derive(Debug)]
 pub struct Cpu {
     pub memory: [u8; TOTAL_MEMORY_BYTES],
 
