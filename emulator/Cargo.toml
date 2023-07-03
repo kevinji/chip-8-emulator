@@ -14,7 +14,6 @@ crate-type = ["cdylib"]
 getrandom = { workspace = true }
 gloo-console = { workspace = true }
 gloo-events = { workspace = true }
-gloo-render = { workspace = true }
 gloo-utils = { workspace = true }
 js-sys = { workspace = true }
 lazy_static = { workspace = true }

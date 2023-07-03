@@ -96,6 +96,7 @@ pub struct AnimationFrame {
 
 impl Drop for AnimationFrame {
     fn drop(&mut self) {
+        self._closure.take();
         if let Some(render_id) = self.render_id.take() {
             window().cancel_animation_frame(render_id).unwrap_throw();
         }
@@ -112,9 +113,9 @@ pub fn set_up_render_loop(mut f: impl FnMut() + 'static) -> AnimationFrame {
     let mut last_time_ms = 0.;
 
     let closure = Rc::new(RefCell::new(None));
-    let closure_internal = Rc::clone(&closure);
-
     let render_id = Rc::new(RefCell::new(None));
+
+    let closure_internal = Rc::clone(&closure);
     let render_id_internal = Rc::clone(&render_id);
 
     *closure.borrow_mut() = Some(Closure::new(move |v: JsValue| {
@@ -124,9 +125,9 @@ pub fn set_up_render_loop(mut f: impl FnMut() + 'static) -> AnimationFrame {
             last_time_ms = time_ms;
         }
 
-        *render_id_internal.borrow_mut() = Some(request_animation_frame(
-            &closure_internal.borrow().as_ref().unwrap(),
-        ));
+        if let Some(closure_internal) = closure_internal.borrow().as_ref() {
+            *render_id_internal.borrow_mut() = Some(request_animation_frame(closure_internal));
+        }
     }));
 
     *render_id.borrow_mut() = Some(request_animation_frame(&closure.borrow().as_ref().unwrap()));
