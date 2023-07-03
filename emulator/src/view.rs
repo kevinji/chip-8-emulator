@@ -1,12 +1,26 @@
-use core::mem;
-use gloo_render::request_animation_frame;
-use gloo_utils::document;
+use core::fmt;
+use gloo_utils::{document, window};
+use std::cell::RefCell;
+use std::rc::Rc;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 const SIXTY_FPS_FRAME_MS: f64 = 1000. / 60.;
 pub const WIDTH: usize = 64;
 pub const HEIGHT: usize = 32;
+
+fn clear_canvas(canvas: &HtmlCanvasElement, ctx: &CanvasRenderingContext2d) {
+    // Save transformation matrix.
+    ctx.save();
+
+    // Use the identity matrix while clearing the canvas.
+    ctx.set_transform(1., 0., 0., 1., 0., 0.).unwrap_throw();
+
+    ctx.clear_rect(0., 0., canvas.width().into(), canvas.height().into());
+
+    // Restore transformation matrix.
+    ctx.restore();
+}
 
 #[derive(Clone, Debug)]
 pub struct View {
@@ -32,6 +46,7 @@ impl View {
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap_throw();
 
+        clear_canvas(&canvas, &ctx);
         ctx.scale(Self::SCALE, Self::SCALE).unwrap_throw();
 
         let filled_pixels = [[false; HEIGHT]; WIDTH];
@@ -61,38 +76,63 @@ impl View {
 
     pub fn clear(&mut self) {
         self.filled_pixels = [[false; HEIGHT]; WIDTH];
-
-        // Save transformation matrix.
-        self.ctx.save();
-
-        // Use the identity matrix while clearing the canvas.
-        self.ctx
-            .set_transform(1., 0., 0., 1., 0., 0.)
-            .unwrap_throw();
-
-        self.ctx.clear_rect(
-            0.,
-            0.,
-            self.canvas.width().into(),
-            self.canvas.height().into(),
-        );
-
-        // Restore transformation matrix.
-        self.ctx.restore();
+        clear_canvas(&self.canvas, &self.ctx);
     }
 }
 
-fn run_on_tick(mut last_time_ms: f64, mut f: impl FnMut() + 'static) -> impl FnOnce(f64) {
-    move |time_ms| {
+struct CallbackWrapper(Box<dyn Fn() + 'static>);
+
+impl fmt::Debug for CallbackWrapper {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("CallbackWrapper")
+    }
+}
+
+#[derive(Debug)]
+pub struct AnimationFrame {
+    _closure: Rc<RefCell<Option<Closure<dyn FnMut(JsValue)>>>>,
+    render_id: Rc<RefCell<Option<i32>>>,
+}
+
+impl Drop for AnimationFrame {
+    fn drop(&mut self) {
+        if let Some(render_id) = self.render_id.take() {
+            window().cancel_animation_frame(render_id).unwrap_throw();
+        }
+    }
+}
+
+fn request_animation_frame(f: &Closure<dyn FnMut(JsValue)>) -> i32 {
+    window()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .unwrap_throw()
+}
+
+pub fn set_up_render_loop(mut f: impl FnMut() + 'static) -> AnimationFrame {
+    let mut last_time_ms = 0.;
+
+    let closure = Rc::new(RefCell::new(None));
+    let closure_internal = Rc::clone(&closure);
+
+    let render_id = Rc::new(RefCell::new(None));
+    let render_id_internal = Rc::clone(&render_id);
+
+    *closure.borrow_mut() = Some(Closure::new(move |v: JsValue| {
+        let time_ms: f64 = v.as_f64().unwrap_or(0.);
         if time_ms - last_time_ms >= SIXTY_FPS_FRAME_MS {
             f();
             last_time_ms = time_ms;
         }
 
-        mem::forget(request_animation_frame(run_on_tick(last_time_ms, f)));
-    }
-}
+        *render_id_internal.borrow_mut() = Some(request_animation_frame(
+            &closure_internal.borrow().as_ref().unwrap(),
+        ));
+    }));
 
-pub fn set_up_render_loop(f: impl FnMut() + 'static) {
-    mem::forget(request_animation_frame(run_on_tick(0., f)));
+    *render_id.borrow_mut() = Some(request_animation_frame(&closure.borrow().as_ref().unwrap()));
+
+    AnimationFrame {
+        _closure: closure,
+        render_id,
+    }
 }

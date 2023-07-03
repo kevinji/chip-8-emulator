@@ -8,6 +8,35 @@
   </head>
 
   <body>
+    <form>
+      <label>Choose game:</label>
+      <select id="select-game">
+        <option>15PUZZLE</option>
+        <option>BLINKY</option>
+        <option>BLITZ</option>
+        <option>BRIX</option>
+        <option>CONNECT4</option>
+        <option>GUESS</option>
+        <option>HIDDEN</option>
+        <option>INVADERS</option>
+        <option>KALEID</option>
+        <option>MAZE</option>
+        <option>MERLIN</option>
+        <option>MISSILE</option>
+        <option>PONG</option>
+        <option>PONG2</option>
+        <option>PUZZLE</option>
+        <option>SYZYGY</option>
+        <option>TANK</option>
+        <option>TETRIS</option>
+        <option>TICTAC</option>
+        <option>UFO</option>
+        <option>VBRIX</option>
+        <option>VERS</option>
+        <option>WIPEOFF</option>
+      </select>
+      <button type="button" id="btn-play">Play!</button>
+    </form>
     <canvas id="view" width="640" height="320" tabindex="1"></canvas>
     <script type="module">
       import init, {} from './pkg/chip_8_emulator.js';
