@@ -1,8 +1,7 @@
-use core::fmt;
+use core::{fmt, ops::Range};
 use gloo_console::log;
 use gloo_utils::{document, window};
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
@@ -10,6 +9,39 @@ const SIXTY_FPS_FRAME_MS: f64 = 1000. / 60.;
 pub const WIDTH: u8 = 64;
 pub const HEIGHT: u8 = 32;
 const SCALE: f64 = 10.;
+
+#[derive(Debug)]
+enum ByteSlice {
+    Whole,
+    StartAt(u8),
+    EndAt(u8),
+}
+
+impl ByteSlice {
+    const fn start(&self) -> u8 {
+        match *self {
+            Self::Whole | Self::EndAt(_) => 0,
+            Self::StartAt(start) => start,
+        }
+    }
+
+    const fn end(&self) -> u8 {
+        match *self {
+            Self::Whole | Self::StartAt(_) => 8,
+            Self::EndAt(end) => end,
+        }
+    }
+
+    fn into_range(&self) -> Range<u8> {
+        self.into()
+    }
+}
+
+impl From<&ByteSlice> for Range<u8> {
+    fn from(byte_slice: &ByteSlice) -> Self {
+        byte_slice.start()..byte_slice.end()
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct View {
@@ -74,7 +106,7 @@ impl View {
         self.filled_pixels[x as usize][y as usize]
     }
 
-    pub fn draw_pixel(&mut self, x: u8, y: u8, is_filled: bool) {
+    fn draw_pixel(&mut self, x: u8, y: u8, is_filled: bool) {
         self.filled_pixels[x as usize][y as usize] = is_filled;
 
         let fill_color = if is_filled {
@@ -84,6 +116,95 @@ impl View {
         };
         self.ctx.set_fill_style(&JsValue::from_str(fill_color));
         self.ctx.fill_rect(x.into(), y.into(), 1., 1.);
+    }
+
+    fn draw_contiguous_sprite(
+        &mut self,
+        sprite: &[u8],
+        x_slice: ByteSlice,
+        n: u8,
+        sx: u8,
+        sy: u8,
+    ) -> bool {
+        let mut collision = false;
+        for iy in 0..n {
+            let byte = sprite[iy as usize];
+            for ix in x_slice.into_range() {
+                let x = sx + ix;
+                let y = sy + iy;
+
+                let curr_is_filled = self.is_pixel_filled(x, y);
+                let mem_is_filled = (byte >> (7 - ix)) & 1 == 1;
+
+                let new_is_filled = curr_is_filled ^ mem_is_filled;
+
+                if curr_is_filled && !new_is_filled {
+                    collision = true;
+                }
+
+                self.draw_pixel(x, y, new_is_filled);
+            }
+        }
+
+        collision
+    }
+
+    pub fn draw_sprite(&mut self, sprite: &[u8], n: u8, sx: u8, sy: u8) -> bool {
+        let mut collision = false;
+
+        if sx + 8 >= WIDTH {
+            if sy + n >= HEIGHT {
+                collision |= self.draw_contiguous_sprite(
+                    sprite,
+                    ByteSlice::EndAt(WIDTH - sx),
+                    HEIGHT - sy,
+                    sx,
+                    sy,
+                );
+                collision |= self.draw_contiguous_sprite(
+                    sprite,
+                    ByteSlice::StartAt(sx + 8 - WIDTH),
+                    HEIGHT - sy,
+                    0,
+                    sy,
+                );
+                collision |= self.draw_contiguous_sprite(
+                    sprite,
+                    ByteSlice::EndAt(WIDTH - sx),
+                    sy + n - HEIGHT,
+                    sx,
+                    0,
+                );
+                collision |= self.draw_contiguous_sprite(
+                    sprite,
+                    ByteSlice::StartAt(sx + 8 - WIDTH),
+                    sy + n - HEIGHT,
+                    0,
+                    0,
+                );
+            } else {
+                collision |=
+                    self.draw_contiguous_sprite(sprite, ByteSlice::EndAt(WIDTH - sx), n, sx, sy);
+                collision |= self.draw_contiguous_sprite(
+                    sprite,
+                    ByteSlice::StartAt(sx + 8 - WIDTH),
+                    n,
+                    0,
+                    sy,
+                );
+            }
+        } else {
+            if sy + n >= HEIGHT {
+                collision |=
+                    self.draw_contiguous_sprite(sprite, ByteSlice::Whole, HEIGHT - sy, sx, sy);
+                collision |=
+                    self.draw_contiguous_sprite(sprite, ByteSlice::Whole, sy + n - HEIGHT, sx, 0);
+            } else {
+                collision |= self.draw_contiguous_sprite(sprite, ByteSlice::Whole, n, sx, sy);
+            }
+        }
+
+        collision
     }
 
     pub fn clear(&mut self) {
