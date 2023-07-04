@@ -34,6 +34,10 @@ async fn main() -> anyhow::Result<()> {
             HeaderValue::from_static("same-origin"),
         )
         .append_response_header(
+            HeaderName::from_static("cross-origin-resource-policy"),
+            HeaderValue::from_static("same-origin"),
+        )
+        .append_response_header(
             header::X_CONTENT_TYPE_OPTIONS,
             HeaderValue::from_static("nosniff"),
         )
