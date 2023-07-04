@@ -8,7 +8,7 @@ use crate::{
     cpu::Cpu,
     keypad::{KeyPressListeners, Keypad},
     roms::ROMS,
-    view::{set_up_render_loop, AnimationFrame, View},
+    view::{AnimationFrame, View},
 };
 use gloo_console::log;
 use gloo_events::EventListener;
@@ -33,7 +33,7 @@ fn start_game(keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>) -> AnimationFr
     let mut cpu = Cpu::new(rom_buf, view, keypad_and_keypress);
     log!("Created CPU");
 
-    let animation_frame = set_up_render_loop(move || {
+    let animation_frame = view::set_up_render_loop(move || {
         for _ in 0..8 {
             cpu.cycle();
         }
@@ -46,6 +46,8 @@ fn start_game(keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>) -> AnimationFr
 #[wasm_bindgen(start)]
 pub fn entry() {
     log!("Setting up emulator...");
+
+    View::init_canvas();
 
     let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
     let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress);

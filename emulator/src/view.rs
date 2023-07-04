@@ -1,4 +1,5 @@
 use core::fmt;
+use gloo_console::log;
 use gloo_utils::{document, window};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -6,31 +7,47 @@ use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 const SIXTY_FPS_FRAME_MS: f64 = 1000. / 60.;
-pub const WIDTH: usize = 64;
-pub const HEIGHT: usize = 32;
-
-fn clear_canvas(canvas: &HtmlCanvasElement, ctx: &CanvasRenderingContext2d) {
-    // Save transformation matrix.
-    ctx.save();
-
-    // Use the identity matrix while clearing the canvas.
-    ctx.set_transform(1., 0., 0., 1., 0., 0.).unwrap_throw();
-
-    ctx.clear_rect(0., 0., canvas.width().into(), canvas.height().into());
-
-    // Restore transformation matrix.
-    ctx.restore();
-}
+pub const WIDTH: u8 = 64;
+pub const HEIGHT: u8 = 32;
+const SCALE: f64 = 10.;
 
 #[derive(Clone, Debug)]
 pub struct View {
-    canvas: HtmlCanvasElement,
     ctx: CanvasRenderingContext2d,
-    filled_pixels: [[bool; HEIGHT]; WIDTH],
+    filled_pixels: [[bool; HEIGHT as usize]; WIDTH as usize],
 }
 
 impl View {
-    const SCALE: f64 = 10.;
+    pub fn init_canvas() {
+        let canvas = document()
+            .get_element_by_id("view")
+            .unwrap_throw()
+            .dyn_into::<HtmlCanvasElement>()
+            .unwrap_throw();
+        let ctx = canvas
+            .get_context("2d")
+            .unwrap_throw()
+            .unwrap_throw()
+            .dyn_into::<CanvasRenderingContext2d>()
+            .unwrap_throw();
+
+        ctx.scale(SCALE, SCALE).unwrap_throw();
+    }
+
+    fn clear_canvas(ctx: &CanvasRenderingContext2d) {
+        log!("Clearing canvas");
+
+        // Save transformation matrix.
+        ctx.save();
+
+        // Use the identity matrix while clearing the canvas.
+        ctx.set_transform(1., 0., 0., 1., 0., 0.).unwrap_throw();
+
+        ctx.clear_rect(0., 0., (WIDTH as f64) * SCALE, (HEIGHT as f64) * SCALE);
+
+        // Restore transformation matrix.
+        ctx.restore();
+    }
 
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
@@ -46,16 +63,11 @@ impl View {
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap_throw();
 
-        clear_canvas(&canvas, &ctx);
-        ctx.scale(Self::SCALE, Self::SCALE).unwrap_throw();
+        Self::clear_canvas(&ctx);
 
-        let filled_pixels = [[false; HEIGHT]; WIDTH];
+        let filled_pixels = [[false; HEIGHT as usize]; WIDTH as usize];
 
-        Self {
-            canvas,
-            ctx,
-            filled_pixels,
-        }
+        Self { ctx, filled_pixels }
     }
 
     pub fn is_pixel_filled(&self, x: u8, y: u8) -> bool {
@@ -75,8 +87,8 @@ impl View {
     }
 
     pub fn clear(&mut self) {
-        self.filled_pixels = [[false; HEIGHT]; WIDTH];
-        clear_canvas(&self.canvas, &self.ctx);
+        self.filled_pixels = [[false; HEIGHT as usize]; WIDTH as usize];
+        Self::clear_canvas(&self.ctx);
     }
 }
 
@@ -119,7 +131,7 @@ pub fn set_up_render_loop(mut f: impl FnMut() + 'static) -> AnimationFrame {
     let render_id_internal = Rc::clone(&render_id);
 
     *closure.borrow_mut() = Some(Closure::new(move |v: JsValue| {
-        let time_ms: f64 = v.as_f64().unwrap_or(0.);
+        let time_ms = v.as_f64().unwrap_or(0.);
         if time_ms - last_time_ms >= SIXTY_FPS_FRAME_MS {
             f();
             last_time_ms = time_ms;
