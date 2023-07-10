@@ -47,8 +47,6 @@ fn start_game(keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>) -> AnimationFr
 pub fn entry() {
     log!("Setting up emulator...");
 
-    View::init_canvas();
-
     let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
     let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress);
 

@@ -1,84 +1,52 @@
-use core::{fmt, ops::Range};
+use core::fmt;
 use gloo_console::log;
 use gloo_utils::{document, window};
 use std::{cell::RefCell, rc::Rc};
-use wasm_bindgen::{prelude::*, JsCast};
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
+use wasm_bindgen::{prelude::*, Clamped, JsCast};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, ImageData};
 
 const SIXTY_FPS_FRAME_MS: f64 = 1000. / 60.;
-pub const WIDTH: u8 = 64;
-pub const HEIGHT: u8 = 32;
-const SCALE: f64 = 10.;
+pub const WIDTH: u32 = 64;
+pub const HEIGHT: u32 = 32;
+const SCALE: u32 = 10;
+const IMAGE_DATA_ENTRIES_PER_PIXEL: u32 = 4;
 
 #[derive(Debug)]
 enum ByteSlice {
     Whole,
-    StartAt(u8),
-    EndAt(u8),
+    StartAt(u32),
+    EndAt(u32),
 }
 
 impl ByteSlice {
-    const fn start(&self) -> u8 {
+    const fn start(&self) -> u32 {
         match *self {
             Self::Whole | Self::EndAt(_) => 0,
             Self::StartAt(start) => start,
         }
     }
 
-    const fn end(&self) -> u8 {
+    const fn end(&self) -> u32 {
         match *self {
             Self::Whole | Self::StartAt(_) => 8,
             Self::EndAt(end) => end,
         }
     }
 
-    fn into_range(&self) -> Range<u8> {
-        self.into()
-    }
-}
-
-impl From<&ByteSlice> for Range<u8> {
-    fn from(byte_slice: &ByteSlice) -> Self {
-        byte_slice.start()..byte_slice.end()
+    const fn len(&self) -> u32 {
+        self.end() - self.start()
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct View {
     ctx: CanvasRenderingContext2d,
-    filled_pixels: [[bool; HEIGHT as usize]; WIDTH as usize],
 }
 
 impl View {
-    pub fn init_canvas() {
-        let canvas = document()
-            .get_element_by_id("view")
-            .unwrap_throw()
-            .dyn_into::<HtmlCanvasElement>()
-            .unwrap_throw();
-        let ctx = canvas
-            .get_context("2d")
-            .unwrap_throw()
-            .unwrap_throw()
-            .dyn_into::<CanvasRenderingContext2d>()
-            .unwrap_throw();
-
-        ctx.scale(SCALE, SCALE).unwrap_throw();
-    }
-
     fn clear_canvas(ctx: &CanvasRenderingContext2d) {
         log!("Clearing canvas");
-
-        // Save transformation matrix.
-        ctx.save();
-
-        // Use the identity matrix while clearing the canvas.
-        ctx.set_transform(1., 0., 0., 1., 0., 0.).unwrap_throw();
-
-        ctx.clear_rect(0., 0., (WIDTH as f64) * SCALE, (HEIGHT as f64) * SCALE);
-
-        // Restore transformation matrix.
-        ctx.restore();
+        ctx.clear_rect(0., 0., (WIDTH * SCALE) as f64, (HEIGHT * SCALE) as f64);
     }
 
     #[allow(clippy::new_without_default)]
@@ -96,45 +64,39 @@ impl View {
             .unwrap_throw();
 
         Self::clear_canvas(&ctx);
-
-        let filled_pixels = [[false; HEIGHT as usize]; WIDTH as usize];
-
-        Self { ctx, filled_pixels }
-    }
-
-    pub fn is_pixel_filled(&self, x: u8, y: u8) -> bool {
-        self.filled_pixels[x as usize][y as usize]
-    }
-
-    fn draw_pixel(&mut self, x: u8, y: u8, is_filled: bool) {
-        self.filled_pixels[x as usize][y as usize] = is_filled;
-
-        let fill_color = if is_filled {
-            "rgb(0, 0, 0)"
-        } else {
-            "rgb(255, 255, 255)"
-        };
-        self.ctx.set_fill_style(&JsValue::from_str(fill_color));
-        self.ctx.fill_rect(x.into(), y.into(), 1., 1.);
+        Self { ctx }
     }
 
     fn draw_contiguous_sprite(
         &mut self,
         sprite: &[u8],
         x_slice: ByteSlice,
-        n: u8,
-        sx: u8,
-        sy: u8,
+        n: u32,
+        sx: u32,
+        sy: u32,
     ) -> bool {
         let mut collision = false;
+        let orig_image_data = self
+            .ctx
+            .get_image_data(
+                (sx * SCALE) as f64,
+                (sy * SCALE) as f64,
+                (x_slice.len() * SCALE) as f64,
+                (n * SCALE) as f64,
+            )
+            .unwrap_throw();
+        let mut image_data = orig_image_data.data();
+
         for iy in 0..n {
             let byte = sprite[iy as usize];
-            for ix in x_slice.into_range() {
-                let x = sx + ix;
-                let y = sy + iy;
+            for ix in 0..x_slice.len() {
+                let base_pos = (IMAGE_DATA_ENTRIES_PER_PIXEL
+                    * SCALE
+                    * (SCALE * iy * x_slice.len() + ix)) as usize;
 
-                let curr_is_filled = self.is_pixel_filled(x, y);
-                let mem_is_filled = (byte >> (7 - ix)) & 1 == 1;
+                // Each pixel stores 4 values (RGBA), and R=0 is black
+                let curr_is_filled = image_data[base_pos] == 0 && image_data[base_pos + 3] == 255;
+                let mem_is_filled = (byte >> (7 - (x_slice.start() + ix))) & 1 == 1;
 
                 let new_is_filled = curr_is_filled ^ mem_is_filled;
 
@@ -142,18 +104,45 @@ impl View {
                     collision = true;
                 }
 
-                self.draw_pixel(x, y, new_is_filled);
+                for scale_dx in 0..SCALE {
+                    for scale_dy in 0..SCALE {
+                        let pos = base_pos
+                            + (IMAGE_DATA_ENTRIES_PER_PIXEL
+                                * (SCALE * scale_dy * x_slice.len() + scale_dx))
+                                as usize;
+
+                        if new_is_filled {
+                            image_data[pos] = 0;
+                            image_data[pos + 1] = 0;
+                            image_data[pos + 2] = 0;
+                            image_data[pos + 3] = 255;
+                        } else {
+                            image_data[pos] = 255;
+                            image_data[pos + 1] = 255;
+                            image_data[pos + 2] = 255;
+                            image_data[pos + 3] = 255;
+                        }
+                    }
+                }
             }
         }
+
+        let new_image_data =
+            ImageData::new_with_u8_clamped_array(Clamped(&image_data), x_slice.len() * SCALE)
+                .unwrap_throw();
+
+        self.ctx
+            .put_image_data(&new_image_data, (sx * SCALE) as f64, (sy * SCALE) as f64)
+            .unwrap_throw();
 
         collision
     }
 
-    pub fn draw_sprite(&mut self, sprite: &[u8], n: u8, sx: u8, sy: u8) -> bool {
+    pub fn draw_sprite(&mut self, sprite: &[u8], n: u32, sx: u32, sy: u32) -> bool {
         let mut collision = false;
 
-        if sx + 8 >= WIDTH {
-            if sy + n >= HEIGHT {
+        if sx + 8 > WIDTH {
+            if sy + n > HEIGHT {
                 collision |= self.draw_contiguous_sprite(
                     sprite,
                     ByteSlice::EndAt(WIDTH - sx),
@@ -194,7 +183,7 @@ impl View {
                 );
             }
         } else {
-            if sy + n >= HEIGHT {
+            if sy + n > HEIGHT {
                 collision |=
                     self.draw_contiguous_sprite(sprite, ByteSlice::Whole, HEIGHT - sy, sx, sy);
                 collision |=
@@ -208,7 +197,6 @@ impl View {
     }
 
     pub fn clear(&mut self) {
-        self.filled_pixels = [[false; HEIGHT as usize]; WIDTH as usize];
         Self::clear_canvas(&self.ctx);
     }
 }

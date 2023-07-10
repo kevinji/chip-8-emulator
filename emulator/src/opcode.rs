@@ -308,9 +308,9 @@ impl Opcode {
             Self::DRW { vx, vy, n } => {
                 let collision = cpu.view.draw_sprite(
                     &cpu.memory[cpu.i_reg as usize..(cpu.i_reg + n as u16) as usize],
-                    n,
-                    cpu.regs[vx as usize],
-                    cpu.regs[vy as usize],
+                    n as u32,
+                    cpu.regs[vx as usize] as u32,
+                    cpu.regs[vy as usize] as u32,
                 );
                 cpu.regs[0xF] = collision.into();
             }
