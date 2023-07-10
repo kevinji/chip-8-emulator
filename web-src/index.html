@@ -4,11 +4,24 @@
     <meta charset="UTF-8">
     <title>CHIP-8 Emulator</title>
 
-    <!--<link rel="stylesheet" href="/static/main.css">-->
+    <style>
+      body {
+        padding: 10px;
+      }
+
+      #choose-game {
+        margin: 0 0 10px 0;
+      }
+
+      #view {
+        display: block;
+        border: 1px solid rgb(0, 0, 0);
+      }
+    </style>
   </head>
 
   <body>
-    <form>
+    <form id="choose-game">
       <label>Choose game:</label>
       <select id="select-game">
         <option>15PUZZLE</option>
