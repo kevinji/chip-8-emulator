@@ -13,7 +13,10 @@ use crate::{
 use gloo_console::log;
 use gloo_events::EventListener;
 use gloo_utils::document;
-use std::sync::{Arc, Condvar, Mutex};
+use std::{
+    panic,
+    sync::{Arc, Condvar, Mutex},
+};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlButtonElement, HtmlSelectElement};
 
@@ -46,6 +49,8 @@ fn start_game(keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>) -> AnimationFr
 #[wasm_bindgen(start)]
 pub fn entry() {
     log!("Setting up emulator...");
+
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
 
     let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
     let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress);

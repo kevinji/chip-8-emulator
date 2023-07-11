@@ -11,6 +11,7 @@ edition = { workspace = true }
 crate-type = ["cdylib"]
 
 [dependencies]
+console_error_panic_hook = { workspace = true }
 getrandom = { workspace = true }
 gloo-console = { workspace = true }
 gloo-events = { workspace = true }

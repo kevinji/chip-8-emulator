@@ -16,6 +16,7 @@ edition = "2021"
 anyhow = "1.0"
 axum = { version = "0.6", features = ["http2"] }
 clap = { version = "4.3", features = ["derive"] }
+console_error_panic_hook = "0.1"
 getrandom = { version = "0.2", features = ["js"] }
 gloo-console = "0.2"
 gloo-events = "0.1"
