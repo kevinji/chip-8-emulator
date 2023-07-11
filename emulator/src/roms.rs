@@ -1,105 +1,25 @@
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
+macro_rules! include_roms {
+    ( $( $x:expr ),* $(,)? ) => {
+        [
+            $(
+                (
+                    $x.to_owned(),
+                    include_bytes!(concat!("../../roms/", $x, ".rom")).to_vec(),
+                ),
+            )*
+        ]
+    };
+}
+
 lazy_static! {
-    pub static ref ROMS: HashMap<String, Vec<u8>> = [
-        (
-            "15PUZZLE".to_owned(),
-            include_bytes!("../../roms/15PUZZLE.rom").to_vec()
-        ),
-        (
-            "BLINKY".to_owned(),
-            include_bytes!("../../roms/BLINKY.rom").to_vec()
-        ),
-        (
-            "BLITZ".to_owned(),
-            include_bytes!("../../roms/BLITZ.rom").to_vec()
-        ),
-        (
-            "BRIX".to_owned(),
-            include_bytes!("../../roms/BRIX.rom").to_vec()
-        ),
-        (
-            "CONNECT4".to_owned(),
-            include_bytes!("../../roms/CONNECT4.rom").to_vec()
-        ),
-        (
-            "GUESS".to_owned(),
-            include_bytes!("../../roms/GUESS.rom").to_vec()
-        ),
-        (
-            "HIDDEN".to_owned(),
-            include_bytes!("../../roms/HIDDEN.rom").to_vec()
-        ),
-        (
-            "IBM".to_owned(),
-            include_bytes!("../../roms/IBM.rom").to_vec()
-        ),
-        (
-            "INVADERS".to_owned(),
-            include_bytes!("../../roms/INVADERS.rom").to_vec()
-        ),
-        (
-            "KALEID".to_owned(),
-            include_bytes!("../../roms/KALEID.rom").to_vec()
-        ),
-        (
-            "MAZE".to_owned(),
-            include_bytes!("../../roms/MAZE.rom").to_vec()
-        ),
-        (
-            "MERLIN".to_owned(),
-            include_bytes!("../../roms/MERLIN.rom").to_vec()
-        ),
-        (
-            "MISSILE".to_owned(),
-            include_bytes!("../../roms/MISSILE.rom").to_vec()
-        ),
-        (
-            "PONG".to_owned(),
-            include_bytes!("../../roms/PONG.rom").to_vec()
-        ),
-        (
-            "PONG2".to_owned(),
-            include_bytes!("../../roms/PONG2.rom").to_vec()
-        ),
-        (
-            "PUZZLE".to_owned(),
-            include_bytes!("../../roms/PUZZLE.rom").to_vec()
-        ),
-        (
-            "SYZYGY".to_owned(),
-            include_bytes!("../../roms/SYZYGY.rom").to_vec()
-        ),
-        (
-            "TANK".to_owned(),
-            include_bytes!("../../roms/TANK.rom").to_vec()
-        ),
-        (
-            "TETRIS".to_owned(),
-            include_bytes!("../../roms/TETRIS.rom").to_vec()
-        ),
-        (
-            "TICTAC".to_owned(),
-            include_bytes!("../../roms/TICTAC.rom").to_vec()
-        ),
-        (
-            "UFO".to_owned(),
-            include_bytes!("../../roms/UFO.rom").to_vec()
-        ),
-        (
-            "VBRIX".to_owned(),
-            include_bytes!("../../roms/VBRIX.rom").to_vec()
-        ),
-        (
-            "VERS".to_owned(),
-            include_bytes!("../../roms/VERS.rom").to_vec()
-        ),
-        (
-            "WIPEOFF".to_owned(),
-            include_bytes!("../../roms/WIPEOFF.rom").to_vec()
-        ),
-    ]
+    pub static ref ROMS: HashMap<String, Vec<u8>> = include_roms!(
+        "15PUZZLE", "BLINKY", "BLITZ", "BRIX", "CONNECT4", "GUESS", "HIDDEN", "IBM", "INVADERS",
+        "KALEID", "MAZE", "MERLIN", "MISSILE", "PONG", "PONG2", "PUZZLE", "SYZYGY", "TANK",
+        "TETRIS", "TICTAC", "UFO", "VBRIX", "VERS", "WIPEOFF",
+    )
     .into_iter()
     .collect();
 }
