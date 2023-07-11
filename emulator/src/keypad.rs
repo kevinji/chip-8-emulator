@@ -41,7 +41,7 @@ pub enum KeyState {
 
 impl Default for KeyState {
     fn default() -> Self {
-        Self::Down
+        Self::Up
     }
 }
 
