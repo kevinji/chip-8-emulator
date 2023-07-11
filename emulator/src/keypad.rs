@@ -7,9 +7,22 @@ use std::sync::{Arc, Condvar, Mutex};
 use wasm_bindgen::JsCast;
 use web_sys::{Event, KeyboardEvent};
 
+/// The CHIP-8 used a hexadecimal keyboard with the following layout:
+///
+/// 1 2 3 C
+/// 4 5 6 D
+/// 7 8 9 E
+/// A 0 B F
+///
+/// We remap these keys to the following layout:
+///
+/// 1 2 3 4
+/// Q W E R
+/// A S D F
+/// Z X C V
 const KEY_CODES: &[&str] = &[
     "KeyX", "Digit1", "Digit2", "Digit3", "KeyQ", // 0 - 4
-    "KeyE", "KeyA", "KeyS", "KeyD", "KeyW", // 5 - 9
+    "KeyW", "KeyE", "KeyA", "KeyS", "KeyD", // 5 - 9
     "KeyZ", "KeyC", "Digit4", "KeyR", "KeyF", "KeyV", // A - F
 ];
 
