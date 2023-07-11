@@ -97,9 +97,6 @@ impl Cpu {
     pub fn cycle(&mut self) {
         let opcode = self.fetch_opcode();
         self.decode_and_execute_opcode(opcode);
-
-        // TODO: Ensure this runs at 60Hz
-        self.update_timers();
     }
 
     fn fetch_opcode(&self) -> u16 {
@@ -119,7 +116,7 @@ impl Cpu {
         opcode.execute(self);
     }
 
-    fn update_timers(&mut self) {
+    pub fn update_timers(&mut self) {
         if self.delay_timer > 0 {
             self.delay_timer -= 1;
         }

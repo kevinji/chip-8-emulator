@@ -40,6 +40,9 @@ fn start_game(keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>) -> AnimationFr
         for _ in 0..8 {
             cpu.cycle();
         }
+
+        // Timers should update at 60Hz
+        cpu.update_timers();
     });
     log!("Set up render loop");
 
