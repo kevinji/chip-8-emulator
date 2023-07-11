@@ -32,6 +32,10 @@ lazy_static! {
             include_bytes!("../../roms/HIDDEN.rom").to_vec()
         ),
         (
+            "IBM".to_owned(),
+            include_bytes!("../../roms/IBM.rom").to_vec()
+        ),
+        (
             "INVADERS".to_owned(),
             include_bytes!("../../roms/INVADERS.rom").to_vec()
         ),
