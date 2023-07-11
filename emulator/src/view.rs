@@ -173,7 +173,7 @@ pub fn set_up_render_loop(mut f: impl FnMut() + 'static) -> AnimationFrame {
         }
     }));
 
-    *render_id.borrow_mut() = Some(request_animation_frame(&closure.borrow().as_ref().unwrap()));
+    *render_id.borrow_mut() = Some(request_animation_frame(closure.borrow().as_ref().unwrap()));
 
     AnimationFrame {
         _closure: closure,

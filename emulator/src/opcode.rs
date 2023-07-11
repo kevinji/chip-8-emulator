@@ -1,7 +1,7 @@
 use crate::{cpu::Cpu, keypad::KeyState};
 use rand::random;
 
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub enum Opcode {
     /// 0nnn - Jump to a machine code routine at nnn. (ignored)
