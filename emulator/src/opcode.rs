@@ -1,6 +1,8 @@
 use crate::{cpu::Cpu, keypad::KeyState};
 use rand::random;
 
+const BYTES_PER_SPRITE: u16 = 5;
+
 #[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub enum Opcode {
@@ -351,11 +353,11 @@ impl Opcode {
                 cpu.i_reg = cpu.i_reg.wrapping_add(cpu.regs[vx as usize] as u16);
             }
             Self::LD_F { vx } => {
-                cpu.i_reg = vx as u16 * 5;
+                cpu.i_reg = cpu.regs[vx as usize] as u16 * BYTES_PER_SPRITE;
             }
             Self::LD_B { vx } => {
                 let mut vx_val = cpu.regs[vx as usize];
-                for i in (0..=2).rev() {
+                for i in (0..3).rev() {
                     cpu.memory[(cpu.i_reg + i) as usize] = vx_val % 10;
                     vx_val /= 10;
                 }
