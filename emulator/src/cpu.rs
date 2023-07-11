@@ -1,5 +1,5 @@
 use crate::{keypad::Keypad, opcode::Opcode, view::View};
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Mutex};
 
 const TOTAL_MEMORY_BYTES: usize = 4096;
 const REGISTER_COUNT: usize = 16;
@@ -24,7 +24,7 @@ pub struct Cpu {
     pub sound_timer: u8,
 
     pub view: View,
-    pub keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
+    pub keypad: Arc<Mutex<Keypad>>,
 }
 
 const FONTSET: [u8; 80] = [
@@ -50,11 +50,7 @@ const _: () = assert!(FONTSET.len() <= PROGRAM_START_ADDRESS as usize);
 
 impl Cpu {
     #[must_use]
-    pub fn new(
-        rom_buf: &[u8],
-        view: View,
-        keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>,
-    ) -> Self {
+    pub fn new(rom_buf: &[u8], view: View, keypad: Arc<Mutex<Keypad>>) -> Self {
         let mut cpu = Self {
             memory: [0; TOTAL_MEMORY_BYTES],
 
@@ -69,7 +65,7 @@ impl Cpu {
             sound_timer: 0,
 
             view,
-            keypad_and_keypress,
+            keypad,
         };
 
         // Store font data before `PROGRAM_START_ADDRESS`.
@@ -128,5 +124,9 @@ impl Cpu {
 
     pub fn push_pc(&mut self) {
         self.pc += 2;
+    }
+
+    pub fn undo_pc(&mut self) {
+        self.pc -= 2;
     }
 }

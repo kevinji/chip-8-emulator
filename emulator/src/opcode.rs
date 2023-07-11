@@ -317,15 +317,13 @@ impl Opcode {
                 cpu.regs[0xF] = collision.into();
             }
             Self::SKP { vx } => {
-                let (keypad, _) = &*cpu.keypad_and_keypress;
-                let key_states = keypad.lock().unwrap().key_states;
+                let key_states = cpu.keypad.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx as usize] as usize] == KeyState::Down {
                     cpu.push_pc();
                 }
             }
             Self::SKNP { vx } => {
-                let (keypad, _) = &*cpu.keypad_and_keypress;
-                let key_states = keypad.lock().unwrap().key_states;
+                let key_states = cpu.keypad.lock().unwrap().key_states;
                 if key_states[cpu.regs[vx as usize] as usize] == KeyState::Up {
                     cpu.push_pc();
                 }
@@ -334,14 +332,12 @@ impl Opcode {
                 cpu.regs[vx as usize] = cpu.delay_timer;
             }
             Self::LD_R_K { vx } => {
-                let (keypad, keypress) = &*cpu.keypad_and_keypress;
-                let keypad = keypad.lock().unwrap();
-                let last_keypress = keypress
-                    .wait(keypad)
-                    .unwrap()
-                    .last_keypress
-                    .expect("Last keypress should exist if keypress has been awaited");
-                cpu.regs[vx as usize] = last_keypress as u8;
+                let last_keypress = cpu.keypad.lock().unwrap().try_take_last_keypress();
+                if let Some(last_keypress) = last_keypress {
+                    cpu.regs[vx as usize] = last_keypress as u8;
+                } else {
+                    cpu.undo_pc();
+                }
             }
             Self::LD_DT_R { vx } => {
                 cpu.delay_timer = cpu.regs[vx as usize];

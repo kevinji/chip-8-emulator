@@ -1,9 +1,8 @@
-use core::mem;
 use gloo_events::EventListener;
 use gloo_utils::window;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Mutex};
 use wasm_bindgen::JsCast;
 use web_sys::{Event, KeyboardEvent};
 
@@ -46,10 +45,23 @@ impl Default for KeyState {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Debug)]
+pub enum LastKeypressState {
+    NotWaiting,
+    Waiting,
+    Found(usize),
+}
+
+impl Default for LastKeypressState {
+    fn default() -> Self {
+        Self::NotWaiting
+    }
+}
+
+#[derive(Debug, Default)]
 pub struct Keypad {
     pub key_states: [KeyState; KEY_CODES.len()],
-    pub last_keypress: Option<usize>,
+    pub last_keypress: LastKeypressState,
 }
 
 impl Keypad {
@@ -58,29 +70,35 @@ impl Keypad {
         Self::default()
     }
 
-    pub fn update_key_state(&mut self, keypress: &Condvar, i: usize, state: KeyState) {
-        let prev_state = mem::replace(&mut self.key_states[i], state);
-        if prev_state == KeyState::Up && state == KeyState::Down {
-            self.last_keypress = Some(i);
-            keypress.notify_all();
+    pub fn update_key_state(&mut self, i: usize, state: KeyState) {
+        self.key_states[i] = state;
+
+        // `keyup` should only fire if previous state was down
+        if let LastKeypressState::Waiting = self.last_keypress {
+            if let KeyState::Up = state {
+                self.last_keypress = LastKeypressState::Found(i);
+            }
+        }
+    }
+
+    pub fn try_take_last_keypress(&mut self) -> Option<usize> {
+        if let LastKeypressState::Found(key) = self.last_keypress {
+            self.last_keypress = LastKeypressState::NotWaiting;
+            Some(key)
+        } else {
+            self.last_keypress = LastKeypressState::Waiting;
+            None
         }
     }
 }
 
-fn on_keypress(
-    keystate: KeyState,
-    keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>,
-) -> impl Fn(&Event) {
-    let keypad_and_keypress = Arc::clone(keypad_and_keypress);
+fn on_keypress(keystate: KeyState, keypad: &Arc<Mutex<Keypad>>) -> impl Fn(&Event) {
+    let keypad = Arc::clone(keypad);
     move |event: &Event| {
         let event = event.dyn_ref::<KeyboardEvent>().unwrap();
         let code = event.code();
         if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
-            let (keypad, keypress) = &*keypad_and_keypress;
-            keypad
-                .lock()
-                .unwrap()
-                .update_key_state(keypress, key_index, keystate);
+            keypad.lock().unwrap().update_key_state(key_index, keystate);
         }
     }
 }
@@ -92,20 +110,13 @@ pub struct KeyPressListeners {
 }
 
 impl KeyPressListeners {
-    pub fn new(keypad_and_keypress: &Arc<(Mutex<Keypad>, Condvar)>) -> Self {
+    pub fn new(keypad: &Arc<Mutex<Keypad>>) -> Self {
         let window = window();
 
-        let on_keydown = EventListener::new(
-            &window,
-            "keydown",
-            on_keypress(KeyState::Down, keypad_and_keypress),
-        );
+        let on_keydown =
+            EventListener::new(&window, "keydown", on_keypress(KeyState::Down, keypad));
 
-        let on_keyup = EventListener::new(
-            &window,
-            "keyup",
-            on_keypress(KeyState::Up, keypad_and_keypress),
-        );
+        let on_keyup = EventListener::new(&window, "keyup", on_keypress(KeyState::Up, keypad));
 
         Self {
             on_keydown,

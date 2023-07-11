@@ -15,12 +15,12 @@ use gloo_events::EventListener;
 use gloo_utils::document;
 use std::{
     panic,
-    sync::{Arc, Condvar, Mutex},
+    sync::{Arc, Mutex},
 };
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlButtonElement, HtmlSelectElement};
 
-fn start_game(keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>) -> AnimationFrame {
+fn start_game(keypad: Arc<Mutex<Keypad>>) -> AnimationFrame {
     let select_game = document()
         .get_element_by_id("select-game")
         .unwrap_throw()
@@ -33,7 +33,7 @@ fn start_game(keypad_and_keypress: Arc<(Mutex<Keypad>, Condvar)>) -> AnimationFr
 
     let view = View::new();
 
-    let mut cpu = Cpu::new(rom_buf, view, keypad_and_keypress);
+    let mut cpu = Cpu::new(rom_buf, view, keypad);
     log!("Created CPU");
 
     let animation_frame = view::set_up_render_loop(move || {
@@ -55,8 +55,8 @@ pub fn entry() {
 
     panic::set_hook(Box::new(console_error_panic_hook::hook));
 
-    let keypad_and_keypress = Arc::new((Mutex::new(Keypad::new()), Condvar::new()));
-    let key_press_listeners = KeyPressListeners::new(&keypad_and_keypress);
+    let keypad = Arc::new(Mutex::new(Keypad::new()));
+    let key_press_listeners = KeyPressListeners::new(&keypad);
 
     // TODO: Handle removing listeners instead of leaking
     key_press_listeners.on_keydown.forget();
@@ -71,7 +71,7 @@ pub fn entry() {
     let mut curr_animation_frame = None;
 
     let btn_play_on_click = EventListener::new(&btn_play, "click", move |_| {
-        curr_animation_frame.replace(start_game(Arc::clone(&keypad_and_keypress)));
+        curr_animation_frame.replace(start_game(Arc::clone(&keypad)));
     });
 
     // TODO: Handle removing listener instead of leaking
