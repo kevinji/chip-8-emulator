@@ -20,6 +20,8 @@ use std::{
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlButtonElement, HtmlSelectElement};
 
+const CYCLES_PER_FRAME: u8 = 10;
+
 fn start_game(keypad: Arc<Mutex<Keypad>>) -> AnimationFrame {
     let select_game = document()
         .get_element_by_id("select-game")
@@ -37,7 +39,7 @@ fn start_game(keypad: Arc<Mutex<Keypad>>) -> AnimationFrame {
     log!("Created CPU");
 
     let animation_frame = view::set_up_render_loop(move || {
-        for _ in 0..8 {
+        for _ in 0..CYCLES_PER_FRAME {
             cpu.cycle();
         }
 
