@@ -11,44 +11,12 @@ pub const HEIGHT: u32 = 32;
 const SCALE: u32 = 10;
 const IMAGE_DATA_ENTRIES_PER_PIXEL: u32 = 4;
 
-#[derive(Debug)]
-enum ByteSlice {
-    Whole,
-    StartAt(u32),
-    EndAt(u32),
-}
-
-impl ByteSlice {
-    const fn start(&self) -> u32 {
-        match *self {
-            Self::Whole | Self::EndAt(_) => 0,
-            Self::StartAt(start) => start,
-        }
-    }
-
-    const fn end(&self) -> u32 {
-        match *self {
-            Self::Whole | Self::StartAt(_) => 8,
-            Self::EndAt(end) => end,
-        }
-    }
-
-    const fn len(&self) -> u32 {
-        self.end() - self.start()
-    }
-}
-
 #[derive(Clone, Debug)]
 pub struct View {
     ctx: CanvasRenderingContext2d,
 }
 
 impl View {
-    fn clear_canvas(ctx: &CanvasRenderingContext2d) {
-        log!("Clearing canvas");
-        ctx.clear_rect(0., 0., (WIDTH * SCALE) as f64, (HEIGHT * SCALE) as f64);
-    }
-
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let canvas = document()
@@ -63,15 +31,16 @@ impl View {
             .dyn_into::<CanvasRenderingContext2d>()
             .unwrap_throw();
 
-        Self::clear_canvas(&ctx);
-        Self { ctx }
+        let view = Self { ctx };
+        view.clear();
+        view
     }
 
     fn draw_contiguous_sprite(
-        &mut self,
+        &self,
         sprite: &[u8],
-        x_slice: ByteSlice,
-        n: u32,
+        x_count: u32,
+        y_count: u32,
         sx: u32,
         sy: u32,
     ) -> bool {
@@ -81,22 +50,21 @@ impl View {
             .get_image_data(
                 (sx * SCALE) as f64,
                 (sy * SCALE) as f64,
-                (x_slice.len() * SCALE) as f64,
-                (n * SCALE) as f64,
+                (x_count * SCALE) as f64,
+                (y_count * SCALE) as f64,
             )
             .unwrap_throw();
         let mut image_data = orig_image_data.data();
 
-        for iy in 0..n {
+        for iy in 0..y_count {
             let byte = sprite[iy as usize];
-            for ix in 0..x_slice.len() {
-                let base_pos = (IMAGE_DATA_ENTRIES_PER_PIXEL
-                    * SCALE
-                    * (SCALE * iy * x_slice.len() + ix)) as usize;
+            for ix in 0..x_count {
+                let base_pos =
+                    (IMAGE_DATA_ENTRIES_PER_PIXEL * SCALE * (SCALE * iy * x_count + ix)) as usize;
 
                 // Each pixel stores 4 values (RGBA), and R=0 is black
                 let curr_is_filled = image_data[base_pos] == 0 && image_data[base_pos + 3] == 255;
-                let mem_is_filled = (byte >> (7 - (x_slice.start() + ix))) & 1 == 1;
+                let mem_is_filled = (byte >> (7 - ix)) & 1 == 1;
 
                 let new_is_filled = curr_is_filled ^ mem_is_filled;
 
@@ -108,7 +76,7 @@ impl View {
                     for scale_dy in 0..SCALE {
                         let pos = base_pos
                             + (IMAGE_DATA_ENTRIES_PER_PIXEL
-                                * (SCALE * scale_dy * x_slice.len() + scale_dx))
+                                * (SCALE * scale_dy * x_count + scale_dx))
                                 as usize;
 
                         if new_is_filled {
@@ -128,7 +96,7 @@ impl View {
         }
 
         let new_image_data =
-            ImageData::new_with_u8_clamped_array(Clamped(&image_data), x_slice.len() * SCALE)
+            ImageData::new_with_u8_clamped_array(Clamped(&image_data), x_count * SCALE)
                 .unwrap_throw();
 
         self.ctx
@@ -138,66 +106,20 @@ impl View {
         collision
     }
 
-    pub fn draw_sprite(&mut self, sprite: &[u8], n: u32, sx: u32, sy: u32) -> bool {
-        let mut collision = false;
+    pub fn draw_sprite(&self, sprite: &[u8], n: u32, sx: u32, sy: u32) -> bool {
+        let sx = sx % WIDTH;
+        let sy = sy % HEIGHT;
 
-        if sx + 8 > WIDTH {
-            if sy + n > HEIGHT {
-                collision |= self.draw_contiguous_sprite(
-                    sprite,
-                    ByteSlice::EndAt(WIDTH - sx),
-                    HEIGHT - sy,
-                    sx,
-                    sy,
-                );
-                collision |= self.draw_contiguous_sprite(
-                    sprite,
-                    ByteSlice::StartAt(sx + 8 - WIDTH),
-                    HEIGHT - sy,
-                    0,
-                    sy,
-                );
-                collision |= self.draw_contiguous_sprite(
-                    sprite,
-                    ByteSlice::EndAt(WIDTH - sx),
-                    sy + n - HEIGHT,
-                    sx,
-                    0,
-                );
-                collision |= self.draw_contiguous_sprite(
-                    sprite,
-                    ByteSlice::StartAt(sx + 8 - WIDTH),
-                    sy + n - HEIGHT,
-                    0,
-                    0,
-                );
-            } else {
-                collision |=
-                    self.draw_contiguous_sprite(sprite, ByteSlice::EndAt(WIDTH - sx), n, sx, sy);
-                collision |= self.draw_contiguous_sprite(
-                    sprite,
-                    ByteSlice::StartAt(sx + 8 - WIDTH),
-                    n,
-                    0,
-                    sy,
-                );
-            }
-        } else {
-            if sy + n > HEIGHT {
-                collision |=
-                    self.draw_contiguous_sprite(sprite, ByteSlice::Whole, HEIGHT - sy, sx, sy);
-                collision |=
-                    self.draw_contiguous_sprite(sprite, ByteSlice::Whole, sy + n - HEIGHT, sx, 0);
-            } else {
-                collision |= self.draw_contiguous_sprite(sprite, ByteSlice::Whole, n, sx, sy);
-            }
-        }
+        let x_count = 8.min(WIDTH - sx);
+        let y_count = n.min(HEIGHT - sy);
 
-        collision
+        self.draw_contiguous_sprite(sprite, x_count, y_count, sx, sy)
     }
 
-    pub fn clear(&mut self) {
-        Self::clear_canvas(&self.ctx);
+    pub fn clear(&self) {
+        log!("Clearing canvas");
+        self.ctx
+            .clear_rect(0., 0., (WIDTH * SCALE) as f64, (HEIGHT * SCALE) as f64);
     }
 }
 
