@@ -136,6 +136,7 @@ impl fmt::Debug for CallbackWrapper {
 
 #[derive(Debug)]
 pub struct AnimationFrame {
+    #[allow(clippy::type_complexity)]
     _closure: Rc<RefCell<Option<Closure<dyn FnMut(JsValue)>>>>,
     render_id: Rc<RefCell<Option<i32>>>,
 }
