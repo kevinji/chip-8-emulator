@@ -19,13 +19,16 @@ pub struct View {
 impl View {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
+        let ctx_options = js_sys::Object::new();
+        js_sys::Reflect::set(&ctx_options, &"alpha".into(), &false.into()).unwrap_throw();
+
         let canvas = document()
             .get_element_by_id("view")
             .unwrap_throw()
             .dyn_into::<HtmlCanvasElement>()
             .unwrap_throw();
         let ctx = canvas
-            .get_context("2d")
+            .get_context_with_context_options("2d", ctx_options.as_ref())
             .unwrap_throw()
             .unwrap_throw()
             .dyn_into::<CanvasRenderingContext2d>()
@@ -62,8 +65,8 @@ impl View {
                 let base_pos =
                     (IMAGE_DATA_ENTRIES_PER_PIXEL * SCALE * (SCALE * iy * x_count + ix)) as usize;
 
-                // Each pixel stores 4 values (RGBA), and R=0 is black
-                let curr_is_filled = image_data[base_pos] == 0 && image_data[base_pos + 3] == 255;
+                // Each pixel stores 4 values (RGBA), and R=255 is white
+                let curr_is_filled = image_data[base_pos] == 255 && image_data[base_pos + 3] == 255;
                 let mem_is_filled = (byte >> (7 - ix)) & 1 == 1;
 
                 let new_is_filled = curr_is_filled ^ mem_is_filled;
@@ -80,14 +83,14 @@ impl View {
                                 as usize;
 
                         if new_is_filled {
-                            image_data[pos] = 0;
-                            image_data[pos + 1] = 0;
-                            image_data[pos + 2] = 0;
-                            image_data[pos + 3] = 255;
-                        } else {
                             image_data[pos] = 255;
                             image_data[pos + 1] = 255;
                             image_data[pos + 2] = 255;
+                            image_data[pos + 3] = 255;
+                        } else {
+                            image_data[pos] = 0;
+                            image_data[pos + 1] = 0;
+                            image_data[pos + 2] = 0;
                             image_data[pos + 3] = 255;
                         }
                     }
