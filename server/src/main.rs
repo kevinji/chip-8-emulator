@@ -1,12 +1,16 @@
 use axum::Router;
 use clap::Parser;
-use http::header::{self, HeaderName, HeaderValue};
-use http::Method;
+use http::{
+    header::{self, HeaderName, HeaderValue},
+    Method,
+};
 use std::net::Ipv4Addr;
 use tower::ServiceBuilder;
-use tower_http::cors::{self, CorsLayer};
-use tower_http::services::ServeDir;
-use tower_http::ServiceBuilderExt;
+use tower_http::{
+    cors::{self, CorsLayer},
+    services::ServeDir,
+    ServiceBuilderExt,
+};
 
 #[derive(Debug, Parser)]
 struct Args {

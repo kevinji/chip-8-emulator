@@ -13,25 +13,20 @@ use crate::{
 use gloo_console::log;
 use gloo_events::EventListener;
 use gloo_utils::document;
-use std::{
-    panic,
-    sync::{Arc, Mutex},
-};
+use std::{cell::RefCell, panic, rc::Rc};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlButtonElement, HtmlSelectElement};
 
 const CYCLES_PER_FRAME: u8 = 10;
 
-fn start_game(keypad: Arc<Mutex<Keypad>>) -> AnimationFrame {
+fn start_game(keypad: Rc<RefCell<Keypad>>) -> AnimationFrame {
     let select_game = document()
         .get_element_by_id("select-game")
         .unwrap_throw()
         .dyn_into::<HtmlSelectElement>()
         .unwrap_throw();
     let rom_name = select_game.value();
-
     let rom_buf = ROMS.get(&rom_name).unwrap_throw();
-    log!("Finished reading ROMs");
 
     let view = View::new();
 
@@ -57,7 +52,7 @@ pub fn entry() {
 
     panic::set_hook(Box::new(console_error_panic_hook::hook));
 
-    let keypad = Arc::new(Mutex::new(Keypad::new()));
+    let keypad = Rc::new(RefCell::new(Keypad::new()));
     let key_press_listeners = KeyPressListeners::new(&keypad);
 
     // TODO: Handle removing listeners instead of leaking
@@ -73,7 +68,7 @@ pub fn entry() {
     let mut curr_animation_frame = None;
 
     let btn_play_on_click = EventListener::new(&btn_play, "click", move |_| {
-        curr_animation_frame.replace(start_game(Arc::clone(&keypad)));
+        curr_animation_frame.replace(start_game(Rc::clone(&keypad)));
     });
 
     // TODO: Handle removing listener instead of leaking

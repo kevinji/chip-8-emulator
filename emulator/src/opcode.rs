@@ -317,13 +317,13 @@ impl Opcode {
                 cpu.regs[0xF] = collision.into();
             }
             Self::SKP { vx } => {
-                let key_states = cpu.keypad.lock().unwrap().key_states;
+                let key_states = cpu.keypad.borrow().key_states;
                 if key_states[cpu.regs[vx as usize] as usize] == KeyState::Down {
                     cpu.push_pc();
                 }
             }
             Self::SKNP { vx } => {
-                let key_states = cpu.keypad.lock().unwrap().key_states;
+                let key_states = cpu.keypad.borrow().key_states;
                 if key_states[cpu.regs[vx as usize] as usize] == KeyState::Up {
                     cpu.push_pc();
                 }
@@ -332,7 +332,7 @@ impl Opcode {
                 cpu.regs[vx as usize] = cpu.delay_timer;
             }
             Self::LD_R_K { vx } => {
-                let last_keypress = cpu.keypad.lock().unwrap().try_take_last_keypress();
+                let last_keypress = cpu.keypad.borrow_mut().try_take_last_keypress();
                 if let Some(last_keypress) = last_keypress {
                     cpu.regs[vx as usize] = last_keypress as u8;
                 } else {

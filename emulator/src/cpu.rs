@@ -1,5 +1,5 @@
 use crate::{keypad::Keypad, opcode::Opcode, view::View};
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 const TOTAL_MEMORY_BYTES: usize = 4096;
 const REGISTER_COUNT: usize = 16;
@@ -24,7 +24,7 @@ pub struct Cpu {
     pub sound_timer: u8,
 
     pub view: View,
-    pub keypad: Arc<Mutex<Keypad>>,
+    pub keypad: Rc<RefCell<Keypad>>,
 }
 
 const FONTSET: [u8; 80] = [
@@ -50,7 +50,7 @@ const _: () = assert!(FONTSET.len() <= PROGRAM_START_ADDRESS as usize);
 
 impl Cpu {
     #[must_use]
-    pub fn new(rom_buf: &[u8], view: View, keypad: Arc<Mutex<Keypad>>) -> Self {
+    pub fn new(rom_buf: &[u8], view: View, keypad: Rc<RefCell<Keypad>>) -> Self {
         let mut cpu = Self {
             memory: [0; TOTAL_MEMORY_BYTES],
 

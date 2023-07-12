@@ -1,8 +1,7 @@
 use gloo_events::EventListener;
 use gloo_utils::window;
 use lazy_static::lazy_static;
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use wasm_bindgen::JsCast;
 use web_sys::{Event, KeyboardEvent};
 
@@ -92,13 +91,13 @@ impl Keypad {
     }
 }
 
-fn on_keypress(keystate: KeyState, keypad: &Arc<Mutex<Keypad>>) -> impl Fn(&Event) {
-    let keypad = Arc::clone(keypad);
+fn on_keypress(keystate: KeyState, keypad: &Rc<RefCell<Keypad>>) -> impl Fn(&Event) {
+    let keypad = Rc::clone(keypad);
     move |event: &Event| {
         let event = event.dyn_ref::<KeyboardEvent>().unwrap();
         let code = event.code();
         if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
-            keypad.lock().unwrap().update_key_state(key_index, keystate);
+            keypad.borrow_mut().update_key_state(key_index, keystate);
         }
     }
 }
@@ -110,7 +109,7 @@ pub struct KeyPressListeners {
 }
 
 impl KeyPressListeners {
-    pub fn new(keypad: &Arc<Mutex<Keypad>>) -> Self {
+    pub fn new(keypad: &Rc<RefCell<Keypad>>) -> Self {
         let window = window();
 
         let on_keydown =
