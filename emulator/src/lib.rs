@@ -55,10 +55,6 @@ pub fn entry() {
     let keypad = Rc::new(RefCell::new(Keypad::new()));
     let key_press_listeners = KeyPressListeners::new(&keypad);
 
-    // TODO: Handle removing listeners instead of leaking
-    key_press_listeners.on_keydown.forget();
-    key_press_listeners.on_keyup.forget();
-
     let btn_play = document()
         .get_element_by_id("btn-play")
         .unwrap_throw()
@@ -71,6 +67,8 @@ pub fn entry() {
         curr_animation_frame.replace(start_game(Rc::clone(&keypad)));
     });
 
-    // TODO: Handle removing listener instead of leaking
+    // Leaking is fine as the listeners should live forever
+    key_press_listeners.on_keydown.forget();
+    key_press_listeners.on_keyup.forget();
     btn_play_on_click.forget();
 }
