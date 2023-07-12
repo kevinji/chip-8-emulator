@@ -23,7 +23,6 @@ gloo-events = "0.1"
 gloo-utils = "0.1"
 http = "0.2"
 js-sys = "0.3"
-lazy_static = "1.4"
 rand = "0.8"
 tokio = { version = "1.28", features = ["macros", "rt-multi-thread"] }
 tower = "0.4"

@@ -17,7 +17,6 @@ gloo-console = { workspace = true }
 gloo-events = { workspace = true }
 gloo-utils = { workspace = true }
 js-sys = { workspace = true }
-lazy_static = { workspace = true }
 rand = { workspace = true }
 wasm-bindgen = { workspace = true }
 web-sys = { workspace = true }

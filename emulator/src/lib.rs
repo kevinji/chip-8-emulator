@@ -7,7 +7,7 @@ mod view;
 use crate::{
     cpu::Cpu,
     keypad::{KeyPressListeners, Keypad},
-    roms::ROMS,
+    roms::roms_by_name,
     view::{AnimationFrame, View},
 };
 use gloo_console::log;
@@ -26,7 +26,7 @@ fn start_game(keypad: Rc<RefCell<Keypad>>) -> AnimationFrame {
         .dyn_into::<HtmlSelectElement>()
         .unwrap_throw();
     let rom_name = select_game.value();
-    let rom_buf = ROMS.get(&rom_name).unwrap_throw();
+    let rom_buf = roms_by_name().get(&rom_name).unwrap_throw();
 
     let view = View::new();
 
