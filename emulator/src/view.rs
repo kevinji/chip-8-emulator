@@ -1,4 +1,3 @@
-use core::fmt;
 use gloo_console::log;
 use gloo_utils::{document, window};
 use std::{cell::RefCell, rc::Rc};
@@ -126,24 +125,16 @@ impl View {
     }
 }
 
-struct CallbackWrapper(Box<dyn Fn() + 'static>);
-
-impl fmt::Debug for CallbackWrapper {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("CallbackWrapper")
-    }
-}
-
 #[derive(Debug)]
 pub struct AnimationFrame {
     #[allow(clippy::type_complexity)]
-    _closure: Rc<RefCell<Option<Closure<dyn FnMut(JsValue)>>>>,
+    closure: Rc<RefCell<Option<Closure<dyn FnMut(JsValue)>>>>,
     render_id: Rc<RefCell<Option<i32>>>,
 }
 
 impl Drop for AnimationFrame {
     fn drop(&mut self) {
-        self._closure.take();
+        self.closure.take();
         if let Some(render_id) = self.render_id.take() {
             window().cancel_animation_frame(render_id).unwrap_throw();
         }
@@ -179,8 +170,5 @@ pub fn set_up_render_loop(mut f: impl FnMut() + 'static) -> AnimationFrame {
 
     *render_id.borrow_mut() = Some(request_animation_frame(closure.borrow().as_ref().unwrap()));
 
-    AnimationFrame {
-        _closure: closure,
-        render_id,
-    }
+    AnimationFrame { closure, render_id }
 }
