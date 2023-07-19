@@ -1,0 +1,7 @@
+{
+  "name": "@kevinji/chip-8-emulator",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^3.3.3"
+  }
+}
