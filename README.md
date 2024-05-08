@@ -1,5 +1,5 @@
 # CHIP-8 emulator
-A CHIP-8 emulator written in Rust that compiles to WebAssembly using [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) and [`wasm-pack`](https://github.com/rustwasm/wasm-pack).
+A CHIP-8 emulator written in Rust that compiles to WebAssembly using [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) and [`wasm-pack`](https://github.com/rustwasm/wasm-pack). **Read my [blog post](https://kevinji.com/posts/chip8) about the project!**
 
 No JavaScript other than the Wasm module instantiation has been manually written. Instead, bindings to JavaScript APIs has been done automatically using the [`js-sys`](https://crates.io/crates/js-sys) and [`web-sys`](https://crates.io/crates/web-sys) crates.
 
