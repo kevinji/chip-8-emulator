@@ -5,6 +5,7 @@ use http::{
     Method,
 };
 use std::net::Ipv4Addr;
+use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_http::{
     cors::{self, CorsLayer},
@@ -52,9 +53,8 @@ async fn main() -> anyhow::Result<()> {
         .nest_service("/", ServeDir::new("web-src"))
         .layer(service_builder);
 
-    let addr = (Ipv4Addr::LOCALHOST, port).into();
-    let server = axum::Server::try_bind(&addr)?.serve(router.into_make_service());
+    let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, port)).await?;
+    axum::serve(listener, router.into_make_service()).await?;
 
-    server.await?;
     Ok(())
 }
