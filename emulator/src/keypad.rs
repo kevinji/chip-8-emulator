@@ -1,6 +1,6 @@
 use gloo_events::EventListener;
 use gloo_utils::window;
-use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::OnceLock};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, sync::LazyLock};
 use wasm_bindgen::JsCast;
 use web_sys::{Event, KeyboardEvent};
 
@@ -23,17 +23,13 @@ const KEY_CODES: &[&str] = &[
     "KeyZ", "KeyC", "Digit4", "KeyR", "KeyF", "KeyV", // A - F
 ];
 
-// TODO: Replace this with `LazyLock` once rust-lang/rust#109736 is stabilized.
-fn key_code_indices() -> &'static HashMap<String, usize> {
-    static LOCK: OnceLock<HashMap<String, usize>> = OnceLock::new();
-    LOCK.get_or_init(|| {
-        KEY_CODES
-            .iter()
-            .enumerate()
-            .map(|(i, key)| ((*key).to_owned(), i))
-            .collect()
-    })
-}
+static KEY_CODE_INDICES: LazyLock<HashMap<String, usize>> = LazyLock::new(|| {
+    KEY_CODES
+        .iter()
+        .enumerate()
+        .map(|(i, key)| ((*key).to_owned(), i))
+        .collect()
+});
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum KeyState {
@@ -99,7 +95,7 @@ fn on_keypress(keystate: KeyState, keypad: &Rc<RefCell<Keypad>>) -> impl Fn(&Eve
     move |event: &Event| {
         let event = event.dyn_ref::<KeyboardEvent>().unwrap();
         let code = event.code();
-        if let Some(&key_index) = key_code_indices().get(&code) {
+        if let Some(&key_index) = KEY_CODE_INDICES.get(&code) {
             keypad.borrow_mut().update_key_state(key_index, keystate);
         }
     }
