@@ -6,75 +6,75 @@ const BYTES_PER_SPRITE: u16 = 5;
 #[allow(non_camel_case_types, clippy::upper_case_acronyms)]
 #[derive(Debug)]
 pub enum Opcode {
-    /// 0nnn - Jump to a machine code routine at nnn. (ignored)
+    /// `0nnn` - Jump to a machine code routine at nnn. (ignored)
     SYS,
-    /// 00E0 - Clear the display.
+    /// `00E0` - Clear the display.
     CLS,
-    /// 00EE - Return from a subroutine.
+    /// `00EE` - Return from a subroutine.
     RET,
-    /// 1nnn - Jump to location nnn.
+    /// `1nnn` - Jump to location nnn.
     JP { addr: u16 },
-    /// 2nnn - Call subroutine at nnn.
+    /// `2nnn` - Call subroutine at nnn.
     CALL { addr: u16 },
-    /// 3xkk - Skip next instruction if Vx = kk.
+    /// `3xkk` - Skip next instruction if Vx = kk.
     SE { vx: u8, byte: u8 },
-    /// 4xkk - Skip next instruction if Vx != kk.
+    /// `4xkk` - Skip next instruction if Vx != kk.
     SNE { vx: u8, byte: u8 },
-    /// 5xy0 - Skip next instruction if Vx = Vy.
+    /// `5xy0` - Skip next instruction if Vx = Vy.
     SE_R { vx: u8, vy: u8 },
-    /// 6xkk - Set Vx = kk.
+    /// `6xkk` - Set Vx = kk.
     LD { vx: u8, byte: u8 },
-    /// 7xkk - Set Vx = Vx + kk.
+    /// `7xkk` - Set Vx = Vx + kk.
     ADD { vx: u8, byte: u8 },
-    /// 8xy0 - Set Vx = Vy.
+    /// `8xy0` - Set Vx = Vy.
     LD_R { vx: u8, vy: u8 },
-    /// 8xy1 - Set Vx = Vx OR Vy.
+    /// `8xy1` - Set Vx = Vx OR Vy.
     OR_R { vx: u8, vy: u8 },
-    /// 8xy2 - Set Vx = Vx AND Vy.
+    /// `8xy2` - Set Vx = Vx AND Vy.
     AND_R { vx: u8, vy: u8 },
-    /// 8xy3 - Set Vx = Vx XOR Vy.
+    /// `8xy3` - Set Vx = Vx XOR Vy.
     XOR_R { vx: u8, vy: u8 },
-    /// 8xy4 - Set Vx = Vx + Vy, set VF = carry.
+    /// `8xy4` - Set Vx = Vx + Vy, set VF = carry.
     ADD_R { vx: u8, vy: u8 },
-    /// 8xy5 - Set Vx = Vx - Vy, set VF = NOT borrow.
+    /// `8xy5` - Set Vx = Vx - Vy, set VF = NOT borrow.
     SUB_R { vx: u8, vy: u8 },
-    /// 8xy6 - Set Vx = Vx SHR 1.
+    /// `8xy6` - Set Vx = Vx SHR 1.
     SHR { vx: u8 },
-    /// 8xy7 - Set Vx = Vy - Vx, set VF = NOT borrow.
+    /// `8xy7` - Set Vx = Vy - Vx, set VF = NOT borrow.
     SUBN_R { vx: u8, vy: u8 },
-    /// 8xyE - Set Vx = Vx SHL 1.
+    /// `8xyE` - Set Vx = Vx SHL 1.
     SHL { vx: u8 },
-    /// 9xy0 - Skip next instruction if Vx != Vy.
+    /// `9xy0` - Skip next instruction if Vx != Vy.
     SNE_R { vx: u8, vy: u8 },
-    /// Annn - Set I = nnn.
+    /// `Annn` - Set I = nnn.
     LD_A { addr: u16 },
-    /// Bnnn - Jump to location nnn + V0.
+    /// `Bnnn` - Jump to location nnn + V0.
     JP_A { addr: u16 },
-    /// Cxkk - Set Vx = random byte AND kk.
+    /// `Cxkk` - Set Vx = random byte AND kk.
     RND { vx: u8, byte: u8 },
-    /// Dxyn - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+    /// `Dxyn` - Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
     DRW { vx: u8, vy: u8, n: u8 },
-    /// Ex9E - Skip next instruction if key with the value of Vx is pressed.
+    /// `Ex9E` - Skip next instruction if key with the value of Vx is pressed.
     SKP { vx: u8 },
-    /// ExA1 - Skip next instruction if key with the value of Vx is not pressed.
+    /// `ExA1` - Skip next instruction if key with the value of Vx is not pressed.
     SKNP { vx: u8 },
-    /// Fx07 - Set Vx = delay timer value.
+    /// `Fx07` - Set Vx = delay timer value.
     LD_R_DT { vx: u8 },
-    /// Fx0A - Wait for a key press, store the value of the key in Vx.
+    /// `Fx0A` - Wait for a key press, store the value of the key in Vx.
     LD_R_K { vx: u8 },
-    /// Fx15 - Set delay timer = Vx.
+    /// `Fx15` - Set delay timer = Vx.
     LD_DT_R { vx: u8 },
-    /// Fx18 - Set sound timer = Vx.
+    /// `Fx18` - Set sound timer = Vx.
     LD_ST_R { vx: u8 },
-    /// Fx1E - Set I = I + Vx.
+    /// `Fx1E` - Set I = I + Vx.
     ADD_I { vx: u8 },
-    /// Fx29 - Set I = location of sprite for digit Vx.
+    /// `Fx29` - Set I = location of sprite for digit Vx.
     LD_F { vx: u8 },
-    /// Fx33 - Store BCD representation of Vx in memory locations I, I+1, and I+2.
+    /// `Fx33` - Store BCD representation of Vx in memory locations I, I+1, and I+2.
     LD_B { vx: u8 },
-    /// Fx55 - Store registers V0 through Vx in memory starting at location I.
+    /// `Fx55` - Store registers V0 through Vx in memory starting at location I.
     LD_I_R { vx: u8 },
-    /// Fx65 - Read registers V0 through Vx from memory starting at location I.
+    /// `Fx65` - Read registers V0 through Vx from memory starting at location I.
     LD_R_I { vx: u8 },
 }
 
