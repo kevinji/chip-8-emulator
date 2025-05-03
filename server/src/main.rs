@@ -50,7 +50,7 @@ async fn main() -> anyhow::Result<()> {
         .append_response_header(header::X_XSS_PROTECTION, HeaderValue::from_static("0"));
 
     let router = Router::new()
-        .nest_service("/", ServeDir::new("web-src"))
+        .fallback_service(ServeDir::new("web-src"))
         .layer(service_builder);
 
     let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, port)).await?;
